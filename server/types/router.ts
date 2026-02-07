@@ -11,6 +11,7 @@ export interface APIObject {
   authorization: authorization;
   rateLimit: rateLimit;
   keyType: keyType;
+  middlewares?: RequestHandler[];  // extra middlewares (e.g. requireRole)
   handler: RequestHandler;
 }
 

@@ -7,6 +7,7 @@ import { BadRequestError } from "../errors/httpErrors.js";
 const authRouter: RouterObject = {
   path: "/auth",
   functions: [
+    // POST /auth/register - Register a new student or teacher
     {
       method: "post",
       props: "/register",
@@ -15,37 +16,52 @@ const authRouter: RouterObject = {
       keyType: "default",
       handler: async (req: Request, res: Response, next: NextFunction) => {
         try {
-          const { email, password } = req.body;
+          const { name, email, password, role, department, enrollmentId, semester, employeeId } = req.body;
 
-          if (!email || !password) {
-            throw new BadRequestError("Email and password are required");
+          if (!name || !email || !password || !role || !department) {
+            throw new BadRequestError("name, email, password, role, and department are required");
           }
 
-          // Check if user already exists
+          if (!["student", "teacher"].includes(role)) {
+            throw new BadRequestError("role must be 'student' or 'teacher'");
+          }
+
+          if (role === "student" && (!enrollmentId || semester === undefined)) {
+            throw new BadRequestError("enrollmentId and semester are required for students");
+          }
+
+          if (role === "teacher" && !employeeId) {
+            throw new BadRequestError("employeeId is required for teachers");
+          }
+
           const existingUser = await User.findOne({ email });
           if (existingUser) {
-            throw new BadRequestError("User already exists");
+            throw new BadRequestError("User already exists with this email");
           }
 
-          // Create new user
           const user = new User({
+            name,
             email,
             password,
-            role: "user",
+            role,
+            department,
+            ...(role === "student" && { enrollmentId, semester }),
+            ...(role === "teacher" && { employeeId }),
           });
 
           await user.save();
 
-          // Generate JWT
           const token = await generateJwt(user._id.toString(), user.email, user.role);
 
           res.status(201).json({
-            message: "User registered successfully",
+            message: "Registration successful",
             token,
             user: {
               id: user._id.toString(),
+              name: user.name,
               email: user.email,
               role: user.role,
+              department: user.department,
             },
           });
         } catch (err) {
@@ -53,6 +69,7 @@ const authRouter: RouterObject = {
         }
       },
     },
+    // POST /auth/login - Login for students and teachers
     {
       method: "post",
       props: "/login",
@@ -67,19 +84,16 @@ const authRouter: RouterObject = {
             throw new BadRequestError("Email and password are required");
           }
 
-          // Find user by email
           const user = await User.findOne({ email });
           if (!user) {
             throw new BadRequestError("Invalid email or password");
           }
 
-          // Compare passwords
           const isPasswordValid = await user.comparePassword(password);
           if (!isPasswordValid) {
             throw new BadRequestError("Invalid email or password");
           }
 
-          // Generate JWT
           const token = await generateJwt(user._id.toString(), user.email, user.role);
 
           res.status(200).json({
@@ -87,8 +101,10 @@ const authRouter: RouterObject = {
             token,
             user: {
               id: user._id.toString(),
+              name: user.name,
               email: user.email,
               role: user.role,
+              department: user.department,
             },
           });
         } catch (err) {

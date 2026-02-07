@@ -5,7 +5,7 @@ import "./lib/env.js";
 
 // Library imports
 import express, { type Express } from "express";
-import { connectDB } from "./lib/supabaseClient.js";
+import { connectDB } from "./lib/db.js";
 import path from "path";
 import cookieParser from "cookie-parser";
 import logger from "morgan";

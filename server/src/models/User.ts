@@ -2,9 +2,18 @@ import mongoose, { Schema, Document } from "mongoose";
 import bcryptjs from "bcryptjs";
 
 export interface IUser extends Document {
+  name: string;
   email: string;
   password: string;
-  role: string;
+  role: "student" | "teacher";
+  department: string;
+  // Student-specific
+  enrollmentId?: string;
+  semester?: number;
+  subjects?: mongoose.Types.ObjectId[];
+  // Teacher-specific
+  employeeId?: string;
+  teachingSubjects?: mongoose.Types.ObjectId[];
   createdAt: Date;
   updatedAt: Date;
   comparePassword(password: string): Promise<boolean>;
@@ -12,6 +21,11 @@ export interface IUser extends Document {
 
 const userSchema = new Schema<IUser>(
   {
+    name: {
+      type: String,
+      required: true,
+      trim: true,
+    },
     email: {
       type: String,
       required: true,
@@ -27,9 +41,41 @@ const userSchema = new Schema<IUser>(
     },
     role: {
       type: String,
-      default: "user",
-      enum: ["user", "admin"],
+      required: true,
+      enum: ["student", "teacher"],
     },
+    department: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    // Student fields
+    enrollmentId: {
+      type: String,
+      sparse: true,
+      unique: true,
+    },
+    semester: {
+      type: Number,
+    },
+    subjects: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "Subject",
+      },
+    ],
+    // Teacher fields
+    employeeId: {
+      type: String,
+      sparse: true,
+      unique: true,
+    },
+    teachingSubjects: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "Subject",
+      },
+    ],
   },
   { timestamps: true },
 );
