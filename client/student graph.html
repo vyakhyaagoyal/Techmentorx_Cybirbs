@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BodhaSetu AI - Purval's Performance Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    * { 
+      margin: 0; 
+      padding: 0; 
+      box-sizing: border-box; 
+    }
+    
+    body { 
+      font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: #ffffff;
+      padding: 0;
+      min-height: 100vh;
+      background-attachment: fixed;
+    }
+
+    .main-container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 40px 20px;
+    }
+    
+    .header {
+      text-align: center;
+      margin-bottom: 40px;
+      padding: 50px 30px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 24px;
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    }
+    
+    .header h1 {
+      font-size: 3rem;
+      font-weight: 800;
+      margin-bottom: 16px;
+      letter-spacing: -1px;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+    }
+    
+    .header .welcome {
+      font-size: 1.5rem;
+      margin-top: 12px;
+      font-weight: 600;
+      opacity: 0.95;
+    }
+
+    .header .student-info {
+      font-size: 1.1rem;
+      margin-top: 8px;
+      opacity: 0.8;
+      font-weight: 400;
+    }
+    
+    .card { 
+      background: rgba(255, 255, 255, 0.95);
+      color: #1f2937;
+      padding: 32px;
+      border-radius: 20px;
+      margin-bottom: 28px;
+      box-shadow: 0 15px 50px rgba(0, 0, 0, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+
+    .card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+    }
+    
+    .card h3 {
+      margin-bottom: 24px;
+      color: #111827;
+      font-size: 1.5rem;
+      font-weight: 700;
+      padding-bottom: 12px;
+      border-bottom: 3px solid #667eea;
+    }
+    
+    .container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+      gap: 28px;
+      margin-bottom: 28px;
+    }
+    
+    canvas { 
+      max-height: 380px;
+      margin-top: 16px;
+    }
+    
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 20px;
+      margin-top: 24px;
+    }
+    
+    .stat-card {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      padding: 28px 20px;
+      border-radius: 16px;
+      text-align: center;
+      color: white;
+      transition: all 0.3s;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+    }
+
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 5px;
+      background: linear-gradient(90deg, #ffffff, rgba(255,255,255,0.5));
+    }
+    
+    .stat-card:hover {
+      transform: translateY(-8px) scale(1.03);
+      box-shadow: 0 15px 40px rgba(102, 126, 234, 0.4);
+    }
+    
+    .stat-card .value {
+      font-size: 2.8rem;
+      font-weight: 900;
+      margin-bottom: 10px;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+    }
+    
+    .stat-card .label {
+      font-size: 1rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      opacity: 0.95;
+    }
+    
+    .insight-box {
+      background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+      padding: 24px;
+      border-radius: 14px;
+      margin-top: 20px;
+      border-left: 6px solid #667eea;
+      transition: all 0.3s;
+    }
+
+    .insight-box:hover {
+      border-left-width: 10px;
+      padding-left: 28px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+    }
+    
+    .insight-box h4 {
+      color: #667eea;
+      margin-bottom: 12px;
+      font-size: 1.2rem;
+      font-weight: 700;
+    }
+    
+    .insight-box p {
+      line-height: 1.8;
+      color: #374151;
+      font-size: 1.05rem;
+    }
+    
+    .loading {
+      text-align: center;
+      padding: 80px;
+      color: #ffffff;
+    }
+    
+    .loader {
+      border: 6px solid rgba(255, 255, 255, 0.3);
+      border-top: 6px solid #ffffff;
+      border-radius: 50%;
+      width: 60px;
+      height: 60px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 24px;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    .week-selector {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      justify-content: center;
+      padding: 20px 0;
+    }
+    
+    .week-btn {
+      padding: 16px 32px;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.7));
+      color: #667eea;
+      border: 2px solid rgba(102, 126, 234, 0.3);
+      border-radius: 14px;
+      cursor: pointer;
+      font-size: 1.1rem;
+      font-weight: 700;
+      transition: all 0.3s;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+    
+    .week-btn:hover {
+      background: linear-gradient(135deg, #ffffff, #f9fafb);
+      border-color: #667eea;
+      transform: translateY(-3px);
+      box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+    }
+    
+    .week-btn.active {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      border-color: #667eea;
+      color: white;
+      box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+      transform: scale(1.05);
+    }
+
+    .grade-badge {
+      display: inline-block;
+      padding: 12px 28px;
+      border-radius: 30px;
+      font-weight: 800;
+      font-size: 1.3rem;
+      margin-top: 16px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+    }
+
+    .grade-a { 
+      background: linear-gradient(135deg, #10b981, #059669); 
+      color: white; 
+    }
+    .grade-b { 
+      background: linear-gradient(135deg, #3b82f6, #2563eb); 
+      color: white; 
+    }
+    .grade-c { 
+      background: linear-gradient(135deg, #f59e0b, #d97706); 
+      color: white; 
+    }
+    .grade-d { 
+      background: linear-gradient(135deg, #ef4444, #dc2626); 
+      color: white; 
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 14px;
+      background: #e5e7eb;
+      border-radius: 12px;
+      overflow: hidden;
+      margin: 16px 0;
+      box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #667eea, #764ba2);
+      border-radius: 12px;
+      transition: width 1.5s cubic-bezier(0.65, 0, 0.35, 1);
+      box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4);
+    }
+
+    .recommendation-item {
+      background: linear-gradient(135deg, #ffffff, #f9fafb);
+      padding: 20px;
+      margin-bottom: 16px;
+      border-radius: 12px;
+      border-left: 5px solid #667eea;
+      transition: all 0.3s;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+
+    .recommendation-item:hover {
+      transform: translateX(8px);
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
+      border-left-width: 8px;
+    }
+
+    .recommendation-item p {
+      color: #374151;
+      font-size: 1.05rem;
+      line-height: 1.7;
+    }
+
+    .improvement-badge {
+      display: inline-block;
+      padding: 6px 16px;
+      border-radius: 20px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      margin-top: 12px;
+    }
+
+    .improvement-up {
+      background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+      color: #065f46;
+    }
+
+    .improvement-down {
+      background: linear-gradient(135deg, #fee2e2, #fecaca);
+      color: #991b1b;
+    }
+
+    .improvement-same {
+      background: linear-gradient(135deg, #e0e7ff, #c7d2fe);
+      color: #3730a3;
+    }
+    
+    @media (max-width: 768px) {
+      .container {
+        grid-template-columns: 1fr;
+      }
+      
+      .header h1 {
+        font-size: 2rem;
+      }
+
+      .stat-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .main-container {
+        padding: 20px 12px;
+      }
+
+      .card {
+        padding: 24px 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="main-container">
+  <div class="header">
+    <h1>BodhaSetu AI Performance Dashboard</h1>
+    <div class="welcome" id="studentName">Loading...</div>
+    <div class="student-info" id="studentId"></div>
+  </div>
+
+  <div class="card">
+    <h3>Weekly Performance Tracker</h3>
+    <div class="week-selector" id="weekSelector"></div>
+  </div>
+
+  <div id="content">
+    <div class="loading">
+      <div class="loader"></div>
+      <p style="font-size: 1.2rem; font-weight: 600;">Loading your performance data...</p>
+    </div>
+  </div>
+</div>
+
+<script>
+// Embedded Student Data
+const studentDataJSON = {
+  "studentName": "Purval",
+  "studentId": "STU2024001",
+  "class": "10th Standard - Section A",
+  "weeklyData": [
+    {
+      "week": 1,
+      "rank": "8th out of 45",
+      "subjects": [
+        { "name": "Mathematics", "score": 78 },
+        { "name": "Physics", "score": 72 },
+        { "name": "Chemistry", "score": 85 },
+        { "name": "Biology", "score": 80 },
+        { "name": "English", "score": 88 },
+        { "name": "Hindi", "score": 75 },
+        { "name": "Computer Science", "score": 92 }
+      ]
+    },
+    {
+      "week": 2,
+      "rank": "6th out of 45",
+      "subjects": [
+        { "name": "Mathematics", "score": 82 },
+        { "name": "Physics", "score": 76 },
+        { "name": "Chemistry", "score": 87 },
+        { "name": "Biology", "score": 83 },
+        { "name": "English", "score": 90 },
+        { "name": "Hindi", "score": 78 },
+        { "name": "Computer Science", "score": 94 }
+      ]
+    },
+    {
+      "week": 3,
+      "rank": "5th out of 45",
+      "subjects": [
+        { "name": "Mathematics", "score": 85 },
+        { "name": "Physics", "score": 80 },
+        { "name": "Chemistry", "score": 89 },
+        { "name": "Biology", "score": 86 },
+        { "name": "English", "score": 92 },
+        { "name": "Hindi", "score": 81 },
+        { "name": "Computer Science", "score": 96 }
+      ]
+    },
+    {
+      "week": 4,
+      "rank": "4th out of 45",
+      "subjects": [
+        { "name": "Mathematics", "score": 88 },
+        { "name": "Physics", "score": 84 },
+        { "name": "Chemistry", "score": 91 },
+        { "name": "Biology", "score": 88 },
+        { "name": "English", "score": 94 },
+        { "name": "Hindi", "score": 83 },
+        { "name": "Computer Science", "score": 97 }
+      ]
+    },
+    {
+      "week": 5,
+      "rank": "3rd out of 45",
+      "subjects": [
+        { "name": "Mathematics", "score": 91 },
+        { "name": "Physics", "score": 87 },
+        { "name": "Chemistry", "score": 93 },
+        { "name": "Biology", "score": 90 },
+        { "name": "English", "score": 95 },
+        { "name": "Hindi", "score": 85 },
+        { "name": "Computer Science", "score": 98 }
+      ]
+    }
+  ]
+};
+
+let studentData = null;
+let currentWeek = 1;
+let subjectChart = null;
+let trendChart = null;
+
+// Load data from embedded JSON
+function loadData() {
+  try {
+    studentData = studentDataJSON;
+    
+    document.getElementById('studentName').innerHTML = `Welcome back, <strong>${studentData.studentName}</strong>`;
+    document.getElementById('studentId').textContent = `${studentData.class} | Student ID: ${studentData.studentId}`;
+    
+    // Create week selector
+    createWeekSelector();
+    
+    // Load most recent week by default
+    renderWeek(studentData.weeklyData.length);
+    
+  } catch (error) {
+    document.getElementById('content').innerHTML = `
+      <div class="card">
+        <div style="text-align: center; color: #ef4444; padding: 50px;">
+          <h3 style="font-size: 1.8rem; margin-bottom: 16px;">Error Loading Data</h3>
+          <p style="margin-top: 16px; font-size: 1.1rem; color: #6b7280;">Could not load data.</p>
+        </div>
+      </div>
+    `;
+  }
+}
+
+function createWeekSelector() {
+  const selector = document.getElementById('weekSelector');
+  const weeks = studentData.weeklyData.length;
+  
+  let html = '';
+  for (let i = 1; i <= weeks; i++) {
+    const isActive = i === weeks;
+    html += `<button class="week-btn ${isActive ? 'active' : ''}" onclick="selectWeek(${i})">Week ${i}</button>`;
+  }
+  
+  selector.innerHTML = html;
+}
+
+function selectWeek(weekNum) {
+  currentWeek = weekNum;
+  
+  // Update active button
+  document.querySelectorAll('.week-btn').forEach((btn, index) => {
+    btn.classList.toggle('active', index + 1 === weekNum);
+  });
+  
+  renderWeek(weekNum);
+}
+
+function renderWeek(weekNum) {
+  const weekData = studentData.weeklyData[weekNum - 1];
+  if (!weekData) return;
+  
+  const subjects = weekData.subjects.map(s => s.name);
+  const scores = weekData.subjects.map(s => s.score);
+  
+  // Calculate statistics
+  const avg = Math.round(scores.reduce((a, b) => a + b, 0) / scores.length);
+  const highest = Math.max(...scores);
+  const lowest = Math.min(...scores);
+  const totalSubjects = subjects.length;
+  
+  // Find strengths and weaknesses
+  const maxIndex = scores.indexOf(highest);
+  const minIndex = scores.indexOf(lowest);
+  const strongestSubject = subjects[maxIndex];
+  const weakestSubject = subjects[minIndex];
+
+  // Calculate grade
+  let grade, gradeClass;
+  if (avg >= 90) { grade = 'A+'; gradeClass = 'grade-a'; }
+  else if (avg >= 80) { grade = 'A'; gradeClass = 'grade-a'; }
+  else if (avg >= 70) { grade = 'B'; gradeClass = 'grade-b'; }
+  else if (avg >= 60) { grade = 'C'; gradeClass = 'grade-c'; }
+  else { grade = 'D'; gradeClass = 'grade-d'; }
+  
+  // Render the dashboard
+  const contentHTML = `
+    <div class="container">
+      <div class="card" style="grid-column: 1 / -1;">
+        <h3>Performance Overview</h3>
+        <div class="stat-grid">
+          <div class="stat-card">
+            <div class="value">${avg}%</div>
+            <div class="label">Average Score</div>
+          </div>
+          <div class="stat-card">
+            <div class="value">${highest}%</div>
+            <div class="label">Highest Score</div>
+          </div>
+          <div class="stat-card">
+            <div class="value">${lowest}%</div>
+            <div class="label">Lowest Score</div>
+          </div>
+          <div class="stat-card">
+            <div class="value">${grade}</div>
+            <div class="label">Overall Grade</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="container">
+      <div class="card">
+        <h3>Subject Performance Analysis</h3>
+        <canvas id="subjectChart"></canvas>
+      </div>
+      
+      <div class="card">
+        <h3>Weekly Progress Trend</h3>
+        <canvas id="trendChart"></canvas>
+      </div>
+    </div>
+    
+    <div class="container">
+      <div class="card">
+        <h3>Performance Insights</h3>
+        ${generateInsights(avg, strongestSubject, weakestSubject, highest, lowest, weekData.rank, grade, gradeClass, weekNum)}
+      </div>
+      
+      <div class="card">
+        <h3>Personalized Recommendations</h3>
+        ${generateRecommendations(avg, weakestSubject, strongestSubject, scores, subjects)}
+      </div>
+    </div>
+  `;
+  
+  document.getElementById('content').innerHTML = contentHTML;
+  
+  // Render charts
+  setTimeout(() => {
+    renderSubjectChart(subjects, scores, avg);
+    renderTrendChart(weekNum);
+  }, 100);
+}
+
+function generateInsights(avg, strongest, weakest, highest, lowest, rank, grade, gradeClass, weekNum) {
+  const performance = avg >= 80 ? "Outstanding" : avg >= 70 ? "Excellent" : avg >= 60 ? "Good" : avg >= 50 ? "Fair" : "Needs Improvement";
+  const performanceColor = avg >= 80 ? "#10b981" : avg >= 70 ? "#3b82f6" : avg >= 60 ? "#f59e0b" : "#ef4444";
+  
+  // Calculate improvement from previous week
+  let improvement = "";
+  if (weekNum > 1) {
+    const prevWeek = studentData.weeklyData[weekNum - 2];
+    const prevAvg = Math.round(prevWeek.subjects.reduce((a, b) => a + b.score, 0) / prevWeek.subjects.length);
+    const diff = avg - prevAvg;
+    if (diff > 0) {
+      improvement = `<span class="improvement-badge improvement-up">Improved by ${diff}% from last week</span>`;
+    } else if (diff < 0) {
+      improvement = `<span class="improvement-badge improvement-down">Decreased by ${Math.abs(diff)}% from last week</span>`;
+    } else {
+      improvement = `<span class="improvement-badge improvement-same">Performance maintained from last week</span>`;
+    }
+  }
+  
+  return `
+    <div class="insight-box">
+      <h4>Overall Performance: <span style="color: ${performanceColor};">${performance}</span></h4>
+      <div class="grade-badge ${gradeClass}">Grade: ${grade}</div>
+      <p style="margin-top: 16px; font-weight: 600; font-size: 1.15rem;">
+        Average Score: <strong style="color: ${performanceColor};">${avg}%</strong>
+      </p>
+      <div class="progress-bar">
+        <div class="progress-fill" style="width: ${avg}%"></div>
+      </div>
+      ${rank ? `<p style="margin-top: 12px; font-weight: 600;">Class Rank: <strong>${rank}</strong></p>` : ''}
+      <div style="margin-top: 12px;">${improvement}</div>
+    </div>
+    
+    <div class="insight-box" style="background: linear-gradient(135deg, #d1fae5, #a7f3d0); border-left-color: #10b981; margin-top: 20px;">
+      <h4 style="color: #065f46;">Top Performance: ${strongest}</h4>
+      <p style="color: #065f46; font-weight: 600;">Outstanding score of <strong style="font-size: 1.2rem;">${highest}%</strong></p>
+      <p style="margin-top: 10px; color: #047857;">Excellent work in this subject. Keep maintaining this high standard!</p>
+    </div>
+    
+    <div class="insight-box" style="background: linear-gradient(135deg, #fef3c7, #fde68a); border-left-color: #f59e0b; margin-top: 20px;">
+      <h4 style="color: #92400e;">Focus Area: ${weakest}</h4>
+      <p style="color: #92400e; font-weight: 600;">Score: <strong style="font-size: 1.2rem;">${lowest}%</strong></p>
+      <p style="margin-top: 10px; color: #b45309;">Extra attention here will significantly boost your overall performance.</p>
+    </div>
+  `;
+}
+
+function generateRecommendations(avg, weakest, strongest, scores, subjects) {
+  let recommendations = [];
+  
+  if (avg >= 85) {
+    recommendations.push("Excellent performance! Challenge yourself with advanced topics and competitive exams preparation.");
+    recommendations.push(`Help classmates who struggle with ${strongest} - teaching reinforces your own understanding.`);
+  } else if (avg >= 70) {
+    recommendations.push("Great job! Focus on achieving consistency across all subjects.");
+    recommendations.push("Set targets to move from good to excellent in each subject.");
+  } else if (avg < 60) {
+    recommendations.push("Schedule daily focused study sessions to build stronger fundamentals.");
+    recommendations.push("Consider joining study groups or seeking guidance from teachers.");
+  }
+  
+  recommendations.push(`Dedicate 30-45 minutes daily to ${weakest} for steady improvement.`);
+  
+  if (Math.min(...scores) < 50) {
+    recommendations.push("Immediate attention needed for subjects below 50%. Consider extra tutoring or online resources.");
+  }
+  
+  const variance = scores.reduce((sum, score) => sum + Math.pow(score - avg, 2), 0) / scores.length;
+  if (variance > 200) {
+    recommendations.push("Balance your study time - allocate more hours to weaker subjects.");
+  }
+  
+  recommendations.push("Set specific weekly goals for each subject and track your progress regularly.");
+  recommendations.push("Take 5-minute breaks every 25 minutes while studying (Pomodoro Technique).");
+  recommendations.push("Get 7-8 hours of quality sleep for better memory retention and focus.");
+  recommendations.push("Practice previous year questions and take mock tests regularly.");
+  
+  return `
+    <div>
+      ${recommendations.map((rec, index) => `
+        <div class="recommendation-item">
+          <p><strong>${index + 1}.</strong> ${rec}</p>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
+function renderSubjectChart(subjects, scores, avg) {
+  const ctx = document.getElementById('subjectChart').getContext('2d');
+  
+  if (subjectChart) {
+    subjectChart.destroy();
+  }
+  
+  subjectChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: subjects,
+      datasets: [{
+        label: 'Subject Scores',
+        data: scores,
+        backgroundColor: [
+          'rgba(102, 126, 234, 0.8)',
+          'rgba(118, 75, 162, 0.8)',
+          'rgba(244, 114, 182, 0.8)',
+          'rgba(59, 130, 246, 0.8)',
+          'rgba(16, 185, 129, 0.8)',
+          'rgba(245, 158, 11, 0.8)',
+          'rgba(239, 68, 68, 0.8)'
+        ],
+        borderColor: [
+          'rgba(102, 126, 234, 1)',
+          'rgba(118, 75, 162, 1)',
+          'rgba(244, 114, 182, 1)',
+          'rgba(59, 130, 246, 1)',
+          'rgba(16, 185, 129, 1)',
+          'rgba(245, 158, 11, 1)',
+          'rgba(239, 68, 68, 1)'
+        ],
+        borderWidth: 2,
+        borderRadius: 8,
+        borderSkipped: false
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      indexAxis: 'y',
+      plugins: {
+        legend: { display: false }
+      },
+      scales: {
+        x: {
+          beginAtZero: true,
+          max: 100,
+          ticks: { color: '#666' }
+        },
+        y: {
+          ticks: { color: '#666' }
+        }
+      }
+    }
+  });
+}
+
+function renderTrendChart(weekNum) {
+  const ctx = document.getElementById('trendChart').getContext('2d');
+  
+  if (trendChart) {
+    trendChart.destroy();
+  }
+  
+  // Get average scores for each week
+  const weekLabels = [];
+  const weekAverages = [];
+  
+  for (let i = 1; i <= weekNum; i++) {
+    const week = studentData.weeklyData[i - 1];
+    const avg = Math.round(week.subjects.reduce((a, b) => a + b.score, 0) / week.subjects.length);
+    weekLabels.push(`Week ${i}`);
+    weekAverages.push(avg);
+  }
+  
+  trendChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: weekLabels,
+      datasets: [{
+        label: 'Weekly Average Performance',
+        data: weekAverages,
+        borderColor: 'rgba(102, 126, 234, 1)',
+        backgroundColor: 'rgba(102, 126, 234, 0.1)',
+        borderWidth: 3,
+        fill: true,
+        tension: 0.4,
+        pointRadius: 6,
+        pointBackgroundColor: 'rgba(102, 126, 234, 1)',
+        pointBorderColor: '#fff',
+        pointBorderWidth: 2,
+        pointHoverRadius: 8,
+        pointHoverBackgroundColor: 'rgba(118, 75, 162, 1)',
+        pointHoverBorderColor: '#fff'
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      plugins: {
+        legend: { display: true }
+      },
+      scales: {
+        y: {
+          beginAtZero: false,
+          min: 50,
+          max: 100,
+          ticks: { color: '#666' }
+        },
+        x: {
+          ticks: { color: '#666' }
+        }
+      }
+    }
+  });
+}
+
+// Load data when page loads
+document.addEventListener('DOMContentLoaded', loadData);
+</script>
+
+</body>
+</html>

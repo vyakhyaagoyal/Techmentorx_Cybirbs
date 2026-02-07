@@ -726,6 +726,191 @@ Generate a monthly report with AI-powered insights.
 
 ---
 
+## Chat Conversations (Mental Health Chatbot)
+
+### `POST /chat/conversations`
+
+Create a new chat conversation.
+
+**Auth**: Required | **Role**: `student`
+
+**Response** `201`:
+```json
+{
+  "message": "Conversation created",
+  "conversation": {
+    "_id": "...",
+    "userId": "...",
+    "messages": [],
+    "extractedMetrics": {
+      "anxietyLevel": 0,
+      "moodScore": 5,
+      "stressLevel": 0,
+      "sleepQuality": "fair",
+      "motivationLevel": 50,
+      "socialEngagement": 50,
+      "mainConcerns": []
+    },
+    "isCrisisFlag": false,
+    "crisisKeywords": []
+  }
+}
+```
+
+---
+
+### `GET /chat/conversations`
+
+List all conversations for the student (paginated, messages excluded).
+
+**Auth**: Required | **Role**: `student`
+
+**Query Parameters**:
+| Param | Type | Optional | Notes |
+|---|---|---|---|
+| `page` | number | Yes | Default 1 |
+| `limit` | number | Yes | Default 20, max 100 |
+
+**Response** `200`:
+```json
+{
+  "conversations": [ { "_id": "...", "userId": "...", "extractedMetrics": { ... }, "isCrisisFlag": false, "updatedAt": "..." } ],
+  "total": 5,
+  "page": 1,
+  "limit": 20
+}
+```
+
+---
+
+### `GET /chat/conversations/:conversationId`
+
+Get a single conversation with all messages.
+
+**Auth**: Required | **Role**: `student`
+
+**Response** `200`:
+```json
+{
+  "conversation": {
+    "_id": "...",
+    "userId": "...",
+    "messages": [
+      { "role": "user", "content": "I feel stressed", "timestamp": "..." },
+      { "role": "assistant", "content": "I understand...", "timestamp": "..." }
+    ],
+    "extractedMetrics": { ... },
+    "isCrisisFlag": false,
+    "crisisKeywords": []
+  }
+}
+```
+
+---
+
+### `POST /chat/conversations/:conversationId/messages`
+
+Append a message to a conversation.
+
+**Auth**: Required | **Role**: `student`
+
+**Request Body**:
+| Field | Type | Required | Notes |
+|---|---|---|---|
+| `role` | string | Yes | `"user"` or `"assistant"` |
+| `content` | string | Yes | Message text |
+
+**Response** `201`:
+```json
+{
+  "message": "Message added",
+  "entry": { "role": "user", "content": "...", "timestamp": "..." }
+}
+```
+
+---
+
+### `PATCH /chat/conversations/:conversationId/metrics`
+
+Update extracted mental health metrics for a conversation.
+
+**Auth**: Required | **Role**: `student`
+
+**Request Body** (all fields optional):
+| Field | Type | Notes |
+|---|---|---|
+| `anxietyLevel` | number | 0–100 |
+| `moodScore` | number | 0–10 |
+| `stressLevel` | number | 0–100 |
+| `sleepQuality` | string | `"poor"`, `"fair"`, `"good"`, `"excellent"` |
+| `motivationLevel` | number | 0–100 |
+| `socialEngagement` | number | 0–100 |
+| `mainConcerns` | string[] | e.g. `["academic pressure", "sleep issues"]` |
+
+**Response** `200`:
+```json
+{ "message": "Metrics updated", "extractedMetrics": { ... } }
+```
+
+---
+
+### `PATCH /chat/conversations/:conversationId/crisis`
+
+Update crisis flag and keywords for a conversation.
+
+**Auth**: Required | **Role**: `student`
+
+**Request Body**:
+| Field | Type | Required | Notes |
+|---|---|---|---|
+| `isCrisisFlag` | boolean | No | Set crisis state |
+| `crisisKeywords` | string[] | No | Words that triggered crisis detection |
+
+**Response** `200`:
+```json
+{ "message": "Crisis flag updated", "isCrisisFlag": true, "crisisKeywords": ["self-harm"] }
+```
+
+---
+
+### `DELETE /chat/conversations/:conversationId`
+
+Delete a conversation.
+
+**Auth**: Required | **Role**: `student`
+
+**Response** `200`:
+```json
+{ "message": "Conversation deleted" }
+```
+
+---
+
+### `GET /chat/conversations/metrics/summary`
+
+Get aggregated mental health metrics across all conversations.
+
+**Auth**: Required | **Role**: `student`
+
+**Response** `200`:
+```json
+{
+  "summary": {
+    "totalConversations": 12,
+    "avgAnxiety": 35.5,
+    "avgMood": 6.2,
+    "avgStress": 42.0,
+    "avgMotivation": 55.0,
+    "avgSocialEngagement": 60.0,
+    "allConcerns": ["academic pressure", "sleep issues"],
+    "crisisCount": 1,
+    "latestMetrics": { ... }
+  }
+}
+```
+
+---
+
 ## Error Responses
 
 All errors follow this format:
