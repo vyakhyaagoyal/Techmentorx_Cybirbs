@@ -54,7 +54,7 @@ export default function Home() {
 
         {/* Quick Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
-          <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-emerald-100">
+          <div className="pbg-white p-4 sm:p-6 rounded-xl shadow-sm border border-emerald-100">
             <div className="text-xs sm:text-sm text-gray-500">
               Overall Position
             </div>
