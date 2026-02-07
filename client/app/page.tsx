@@ -45,7 +45,7 @@ export default function Home() {
         {/* Welcome Section */}
         <div className="mb-6 sm:mb-8">
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
-            Welcome back, John! 🌿
+            Welcome back, Purval! 🌿
           </h1>
           <p className="mt-2 text-sm sm:text-base text-gray-600">
             Here's your learning dashboard for today

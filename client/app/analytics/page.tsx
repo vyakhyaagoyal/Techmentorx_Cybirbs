@@ -96,6 +96,60 @@ export default function Analytics() {
           </div>
         </div>
 
+        {/* Insights & Recommendations */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 mb-6">
+          <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 sm:p-6">
+            <h3 className="text-base sm:text-lg font-bold text-blue-900 mb-4">
+              🎯 Key Insights
+            </h3>
+            <ul className="space-y-3 text-xs sm:text-sm text-blue-800">
+              <li className="flex items-start">
+                <span className="mr-2 shrink-0">•</span>
+                <span>
+                  Your DSA performance needs attention - you're behind 45% of
+                  students
+                </span>
+              </li>
+              <li className="flex items-start">
+                <span className="mr-2 shrink-0">•</span>
+                <span>
+                  Strong performance in Web Development and Computer Networks
+                </span>
+              </li>
+              <li className="flex items-start">
+                <span className="mr-2 shrink-0">•</span>
+                <span>
+                  Your attendance has been consistently good this semester
+                </span>
+              </li>
+            </ul>
+          </div>
+
+          <div className="bg-green-50 border border-green-200 rounded-xl p-4 sm:p-6">
+            <h3 className="text-base sm:text-lg font-bold text-green-900 mb-4">
+              💡 AI Recommendations
+            </h3>
+            <ul className="space-y-3 text-xs sm:text-sm text-green-800">
+              <li className="flex items-start">
+                <span className="mr-2 shrink-0">•</span>
+                <span>
+                  Focus on Binary Search Trees and Dynamic Programming in DSA
+                </span>
+              </li>
+              <li className="flex items-start">
+                <span className="mr-2 shrink-0">•</span>
+                <span>Complete 4 pending topics in the "To Study" section</span>
+              </li>
+              <li className="flex items-start">
+                <span className="mr-2 shrink-0">•</span>
+                <span>
+                  Take advantage of your strong subjects to help peers
+                </span>
+              </li>
+            </ul>
+          </div>
+        </div>
+
         {/* Subject-wise Performance */}
         <div className="bg-white rounded-xl shadow-md p-4 sm:p-6 mb-8">
           <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-6">
@@ -180,60 +234,6 @@ export default function Analytics() {
                 </div>
               </div>
             ))}
-          </div>
-        </div>
-
-        {/* Insights & Recommendations */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-          <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 sm:p-6">
-            <h3 className="text-base sm:text-lg font-bold text-blue-900 mb-4">
-              🎯 Key Insights
-            </h3>
-            <ul className="space-y-3 text-xs sm:text-sm text-blue-800">
-              <li className="flex items-start">
-                <span className="mr-2 shrink-0">•</span>
-                <span>
-                  Your DSA performance needs attention - you're behind 45% of
-                  students
-                </span>
-              </li>
-              <li className="flex items-start">
-                <span className="mr-2 shrink-0">•</span>
-                <span>
-                  Strong performance in Web Development and Computer Networks
-                </span>
-              </li>
-              <li className="flex items-start">
-                <span className="mr-2 shrink-0">•</span>
-                <span>
-                  Your attendance has been consistently good this semester
-                </span>
-              </li>
-            </ul>
-          </div>
-
-          <div className="bg-green-50 border border-green-200 rounded-xl p-4 sm:p-6">
-            <h3 className="text-base sm:text-lg font-bold text-green-900 mb-4">
-              💡 AI Recommendations
-            </h3>
-            <ul className="space-y-3 text-xs sm:text-sm text-green-800">
-              <li className="flex items-start">
-                <span className="mr-2 shrink-0">•</span>
-                <span>
-                  Focus on Binary Search Trees and Dynamic Programming in DSA
-                </span>
-              </li>
-              <li className="flex items-start">
-                <span className="mr-2 shrink-0">•</span>
-                <span>Complete 4 pending topics in the "To Study" section</span>
-              </li>
-              <li className="flex items-start">
-                <span className="mr-2 shrink-0">•</span>
-                <span>
-                  Take advantage of your strong subjects to help peers
-                </span>
-              </li>
-            </ul>
           </div>
         </div>
       </main>

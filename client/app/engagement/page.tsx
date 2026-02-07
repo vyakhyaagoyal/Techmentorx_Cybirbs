@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
 export default function Engagement() {
   const [selectedSubject, setSelectedSubject] = useState("All Subjects");
@@ -92,8 +93,37 @@ export default function Engagement() {
     return "Needs Attention";
   };
 
-  return (
-    <div className="min-h-screen">
+ const router = useRouter();
+const [authorized, setAuthorized] = useState<null | boolean>(null);
+
+useEffect(() => {
+  const role = localStorage.getItem("role");
+
+  if (!role) {
+    router.replace("/login");
+    return;
+  }
+
+  if (role === "teacher" || role === "admin") {
+    setAuthorized(true);
+  } else {
+    router.replace("/dashboard");
+  }
+}, [router]);
+
+
+ if (authorized === null) {
+  return null; // prevents UI flash
+}
+
+if (!authorized) {
+  return null;
+}
+
+
+return (
+  <div className="min-h-screen">
+
       <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-8">
