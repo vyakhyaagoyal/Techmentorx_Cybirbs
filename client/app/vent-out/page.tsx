@@ -1,6 +1,10 @@
 "use client";
-
+import React from "react";
 import { useState } from "react";
+import MemoryGame from './MemoryGame'
+import FocusGame from './FocusGame'
+import MindfulnessGame from './MindfulnessGame'
+import CreativeGame from './CreativeGame'
 
 export default function VentOut() {
   const [messages, setMessages] = useState<
@@ -14,6 +18,8 @@ export default function VentOut() {
   ]);
   const [input, setInput] = useState("");
   const [moodScore] = useState(7);
+  const [activeGame, setActiveGame] = useState<string | null>(null);
+
 
   const handleSendMessage = () => {
     if (input.trim()) {
@@ -221,22 +227,59 @@ export default function VentOut() {
           </div>
         </div>
 
+        {/* Game Modal */}
+        {activeGame && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <div className="bg-white w-full max-w-2xl rounded-xl p-6 relative shadow-xl">
+
+              {/* Close Button */}
+              <button
+                onClick={() => setActiveGame(null)}
+                className="absolute top-3 right-3 text-gray-500 hover:text-black text-xl"
+              >
+                ✖
+              </button>
+
+              {/* Memory Match Game */}
+              {activeGame === "memory" && <MemoryGame />}
+
+              {/* Focus Game */}
+              {activeGame === "focus" && <FocusGame />}
+
+              {/* Mindfulness */}
+              {activeGame === "mindfulness" && <MindfulnessGame />}
+
+              {/* Creative */}
+              {activeGame === "creative" && <CreativeGame />}
+
+            </div>
+          </div>
+        )}
+
         {/* Brain Games & Activities */}
         <div className="bg-white rounded-xl shadow-md p-5 sm:p-6 lg:p-8 mb-6 sm:mb-8 lg:mb-10">
           <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 mb-6 sm:mb-8">
             🎮 Brain Games & Activities
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 lg:gap-6">
-            <div className="border-2 border-gray-200 rounded-xl p-5 sm:p-6 hover:shadow-lg hover:border-emerald-300 transition-all cursor-pointer">
+            <div
+  onClick={() => setActiveGame("memory")}
+  className="border-2 border-gray-200 rounded-xl p-5 sm:p-6 hover:shadow-lg hover:border-emerald-300 transition-all cursor-pointer"
+>
+
               <div className="text-4xl sm:text-5xl mb-3">🧩</div>
               <h3 className="font-semibold text-gray-900 mb-2 text-base sm:text-lg">
-                Memory Match
+                Chemistry Memory Match
               </h3>
               <p className="text-xs sm:text-sm text-gray-600">
                 Improve cognitive function
               </p>
             </div>
-            <div className="border-2 border-gray-200 rounded-xl p-5 sm:p-6 hover:shadow-lg hover:border-emerald-300 transition-all cursor-pointer">
+            <div
+  onClick={() => setActiveGame("focus")}
+  className="border-2 border-gray-200 rounded-xl p-5 sm:p-6 hover:shadow-lg hover:border-emerald-300 transition-all cursor-pointer"
+>
+
               <div className="text-4xl sm:text-5xl mb-3">🎯</div>
               <h3 className="font-semibold text-gray-900 mb-2 text-base sm:text-lg">
                 Focus Challenge
@@ -245,17 +288,25 @@ export default function VentOut() {
                 Enhance concentration
               </p>
             </div>
-            <div className="border-2 border-gray-200 rounded-xl p-5 sm:p-6 hover:shadow-lg hover:border-emerald-300 transition-all cursor-pointer">
+            <div
+  onClick={() => setActiveGame("mindfulness")}
+  className="border-2 border-gray-200 rounded-xl p-5 sm:p-6 hover:shadow-lg hover:border-emerald-300 transition-all cursor-pointer"
+>
+
               <div className="text-4xl sm:text-5xl mb-3">🧘</div>
               <h3 className="font-semibold text-gray-900 mb-2 text-base sm:text-lg">
                 Mindfulness
               </h3>
               <p className="text-xs sm:text-sm text-gray-600">Reduce stress</p>
             </div>
-            <div className="border-2 border-gray-200 rounded-xl p-5 sm:p-6 hover:shadow-lg hover:border-emerald-300 transition-all cursor-pointer">
+            <div
+  onClick={() => setActiveGame("creative")}
+  className="border-2 border-gray-200 rounded-xl p-5 sm:p-6 hover:shadow-lg hover:border-emerald-300 transition-all cursor-pointer"
+>
+
               <div className="text-4xl sm:text-5xl mb-3">🎨</div>
               <h3 className="font-semibold text-gray-900 mb-2 text-base sm:text-lg">
-                Creative Mode
+                Grounding Exercise
               </h3>
               <p className="text-xs sm:text-sm text-gray-600">
                 Express yourself
@@ -301,3 +352,5 @@ export default function VentOut() {
     </div>
   );
 }
+
+
