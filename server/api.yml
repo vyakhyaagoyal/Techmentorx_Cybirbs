@@ -110,6 +110,65 @@ components:
             status:
               type: integer
 
+    ChatMessage:
+      type: object
+      properties:
+        role:
+          type: string
+          enum: [user, assistant]
+        content:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+
+    ExtractedMetrics:
+      type: object
+      properties:
+        anxietyLevel:
+          type: number
+        moodScore:
+          type: number
+        stressLevel:
+          type: number
+        sleepQuality:
+          type: string
+          enum: [poor, fair, good, excellent]
+        motivationLevel:
+          type: number
+        socialEngagement:
+          type: number
+        mainConcerns:
+          type: array
+          items:
+            type: string
+
+    ChatConversation:
+      type: object
+      properties:
+        _id:
+          type: string
+        userId:
+          type: string
+        messages:
+          type: array
+          items:
+            $ref: "#/components/schemas/ChatMessage"
+        extractedMetrics:
+          $ref: "#/components/schemas/ExtractedMetrics"
+        isCrisisFlag:
+          type: boolean
+        crisisKeywords:
+          type: array
+          items:
+            type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
 paths:
   /:
     get:
@@ -1186,3 +1245,285 @@ paths:
                     type: string
                   report:
                     type: object
+
+  /chat/conversations:
+    post:
+      summary: Create a new chat conversation
+      tags: [Chat]
+      security:
+        - BearerAuth: []
+      description: "Role: student only"
+      responses:
+        "201":
+          description: Conversation created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  conversation:
+                    $ref: "#/components/schemas/ChatConversation"
+    get:
+      summary: List all conversations (paginated, messages excluded)
+      tags: [Chat]
+      security:
+        - BearerAuth: []
+      description: "Role: student only"
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+            maximum: 100
+      responses:
+        "200":
+          description: Paginated conversation list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  conversations:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/ChatConversation"
+                  total:
+                    type: integer
+                  page:
+                    type: integer
+                  limit:
+                    type: integer
+
+  /chat/conversations/{conversationId}:
+    get:
+      summary: Get a conversation with all messages
+      tags: [Chat]
+      security:
+        - BearerAuth: []
+      description: "Role: student only"
+      parameters:
+        - name: conversationId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Full conversation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  conversation:
+                    $ref: "#/components/schemas/ChatConversation"
+    delete:
+      summary: Delete a conversation
+      tags: [Chat]
+      security:
+        - BearerAuth: []
+      description: "Role: student only"
+      parameters:
+        - name: conversationId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Conversation deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+
+  /chat/conversations/{conversationId}/messages:
+    post:
+      summary: Append a message to a conversation
+      tags: [Chat]
+      security:
+        - BearerAuth: []
+      description: "Role: student only"
+      parameters:
+        - name: conversationId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [role, content]
+              properties:
+                role:
+                  type: string
+                  enum: [user, assistant]
+                content:
+                  type: string
+      responses:
+        "201":
+          description: Message added
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  entry:
+                    $ref: "#/components/schemas/ChatMessage"
+
+  /chat/conversations/{conversationId}/metrics:
+    patch:
+      summary: Update extracted mental health metrics
+      tags: [Chat]
+      security:
+        - BearerAuth: []
+      description: "Role: student only"
+      parameters:
+        - name: conversationId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                anxietyLevel:
+                  type: number
+                  minimum: 0
+                  maximum: 100
+                moodScore:
+                  type: number
+                  minimum: 0
+                  maximum: 10
+                stressLevel:
+                  type: number
+                  minimum: 0
+                  maximum: 100
+                sleepQuality:
+                  type: string
+                  enum: [poor, fair, good, excellent]
+                motivationLevel:
+                  type: number
+                  minimum: 0
+                  maximum: 100
+                socialEngagement:
+                  type: number
+                  minimum: 0
+                  maximum: 100
+                mainConcerns:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        "200":
+          description: Metrics updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  extractedMetrics:
+                    $ref: "#/components/schemas/ExtractedMetrics"
+
+  /chat/conversations/{conversationId}/crisis:
+    patch:
+      summary: Update crisis flag and keywords
+      tags: [Chat]
+      security:
+        - BearerAuth: []
+      description: "Role: student only"
+      parameters:
+        - name: conversationId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                isCrisisFlag:
+                  type: boolean
+                crisisKeywords:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        "200":
+          description: Crisis flag updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  isCrisisFlag:
+                    type: boolean
+                  crisisKeywords:
+                    type: array
+                    items:
+                      type: string
+
+  /chat/conversations/metrics/summary:
+    get:
+      summary: Aggregated mental health metrics across all conversations
+      tags: [Chat]
+      security:
+        - BearerAuth: []
+      description: "Role: student only"
+      responses:
+        "200":
+          description: Metrics summary
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  summary:
+                    type: object
+                    nullable: true
+                    properties:
+                      totalConversations:
+                        type: integer
+                      avgAnxiety:
+                        type: number
+                      avgMood:
+                        type: number
+                      avgStress:
+                        type: number
+                      avgMotivation:
+                        type: number
+                      avgSocialEngagement:
+                        type: number
+                      allConcerns:
+                        type: array
+                        items:
+                          type: string
+                      crisisCount:
+                        type: integer
+                      latestMetrics:
+                        $ref: "#/components/schemas/ExtractedMetrics"
