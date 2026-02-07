@@ -911,6 +911,70 @@ Get aggregated mental health metrics across all conversations.
 
 ---
 
+## Quiz Generation (Gemini AI)
+
+### `POST /generate-quiz`
+
+Upload a lecture file (PPT, PDF, DOCX, etc.) and generate a quiz using Google Gemini free-tier API. The file is **not stored** — it is sent directly to Gemini in memory, questions are generated, and the quiz is saved and made available to every student enrolled in the subject (visible via `GET /quiz/pending`).
+
+A companion `Lecture` record is also created automatically.
+
+**Auth**: Required | **Role**: `teacher`
+
+**Content-Type**: `multipart/form-data`
+
+**Form Fields**:
+| Field | Type | Required | Notes |
+|---|---|---|---|
+| `file` | file | Yes | PPT, PPTX, PDF, DOC, DOCX, TXT, PNG, JPG — max 50 MB |
+| `subjectId` | string | Yes | Subject ObjectId |
+| `title` | string | Yes | Lecture / quiz title |
+| `topicsCovered` | string (JSON) | Yes | JSON array, e.g. `["Recursion","Trees"]` |
+| `numQuestions` | number | No | Default 10 |
+| `duration` | number | No | Quiz duration in minutes (default 20) |
+
+**Example (curl)**:
+```bash
+curl -X POST http://localhost:5000/generate-quiz \
+  -H "Authorization: Bearer <token>" \
+  -F "file=@lecture.pptx" \
+  -F 'subjectId=665a...' \
+  -F 'title=Binary Search Lecture' \
+  -F 'topicsCovered=["Binary Search","Divide and Conquer"]' \
+  -F 'numQuestions=10'
+```
+
+**Response** `201`:
+```json
+{
+  "message": "Quiz generated and assigned to all students of this subject",
+  "quiz": {
+    "_id": "...",
+    "title": "Quiz: Binary Search Lecture",
+    "questionsCount": 10,
+    "duration": 20,
+    "startsAt": "2026-02-07T10:00:00.000Z",
+    "endsAt": "2026-02-08T10:00:00.000Z",
+    "subjectId": "665a..."
+  },
+  "lecture": {
+    "_id": "...",
+    "title": "Binary Search Lecture"
+  }
+}
+```
+
+**Errors**:
+| Status | Reason |
+|---|---|
+| `400` | Missing file, subjectId, title, or topicsCovered |
+| `404` | Subject not found or teacher doesn't own it |
+| `500` | Gemini API failure or malformed AI response |
+
+> **How it works**: The uploaded file buffer is sent to Gemini's multimodal API. Gemini reads the content, generates MCQs targeting the given topics, and returns structured JSON. The quiz is active for 24 hours.
+
+---
+
 ## Error Responses
 
 All errors follow this format:
