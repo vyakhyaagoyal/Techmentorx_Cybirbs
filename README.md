@@ -133,4 +133,7 @@ Student dashboard includes:
 
 ```bash
 npm install
+cd client
+npm run dev
+cd server
 npm run dev
