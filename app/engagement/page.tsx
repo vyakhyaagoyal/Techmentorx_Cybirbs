@@ -118,7 +118,7 @@ export default function Engagement() {
                 during lectures. This provides valuable insights into which
                 topics students find engaging or challenging.
               </p>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6 text-black">
                 <div className="bg-white bg-opacity-20 rounded-lg p-4">
                   <div className="text-3xl font-bold">92%</div>
                   <div className="text-sm opacity-90">Accuracy Rate</div>
