@@ -1610,3 +1610,197 @@ paths:
           description: Subject not found or teacher does not own it
         "500":
           description: Gemini API failure or malformed AI response
+
+  # ── Teacher Analytics ──
+  /teacher/analytics/overview:
+    get:
+      summary: High-level analytics across all teacher's subjects
+      tags: [Teacher Analytics]
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Overview stats, per-subject stats, recent results
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  overview:
+                    type: object
+                    properties:
+                      totalSubjects:
+                        type: integer
+                      totalStudents:
+                        type: integer
+                      totalQuizSubmissions:
+                        type: integer
+                      overallAverageScore:
+                        type: number
+                  subjectStats:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        subjectId:
+                          type: string
+                        subjectName:
+                          type: string
+                        subjectCode:
+                          type: string
+                        totalStudents:
+                          type: integer
+                        totalQuizResults:
+                          type: integer
+                        averageScore:
+                          type: number
+                        highestScore:
+                          type: number
+                        lowestScore:
+                          type: number
+                        weakTopics:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              topic:
+                                type: string
+                              failCount:
+                                type: integer
+                  recentResults:
+                    type: array
+                    items:
+                      type: object
+
+  /teacher/analytics/subjects/{subjectId}:
+    get:
+      summary: Per-subject student performance breakdown
+      tags: [Teacher Analytics]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: subjectId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Subject detail with student performance, quizzes, weak topics
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  subject:
+                    type: object
+                    properties:
+                      _id:
+                        type: string
+                      name:
+                        type: string
+                      code:
+                        type: string
+                      totalEnrolled:
+                        type: integer
+                  classAverage:
+                    type: number
+                  studentPerformance:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        studentId:
+                          type: string
+                        name:
+                          type: string
+                        averageScore:
+                          type: number
+                        trend:
+                          type: string
+                          enum: [up, down, stable]
+                  quizzes:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        _id:
+                          type: string
+                        title:
+                          type: string
+                        submissions:
+                          type: integer
+                        averageScore:
+                          type: number
+                  classWeakTopics:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        topic:
+                          type: string
+                        studentsStruggling:
+                          type: integer
+                        percentageStruggling:
+                          type: integer
+        "404":
+          description: Subject not found
+
+  /teacher/analytics/quiz/{quizId}:
+    get:
+      summary: Per-quiz analytics with question-by-question breakdown
+      tags: [Teacher Analytics]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: quizId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Quiz stats, question analysis, student results
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  quiz:
+                    type: object
+                  stats:
+                    type: object
+                    properties:
+                      totalSubmissions:
+                        type: integer
+                      averageScore:
+                        type: number
+                      highestScore:
+                        type: number
+                      lowestScore:
+                        type: number
+                      passRate:
+                        type: integer
+                  questionStats:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        questionIndex:
+                          type: integer
+                        question:
+                          type: string
+                        topic:
+                          type: string
+                        accuracy:
+                          type: integer
+                        optionDistribution:
+                          type: array
+                          items:
+                            type: object
+                  studentResults:
+                    type: array
+                    items:
+                      type: object
+        "404":
+          description: Quiz not found

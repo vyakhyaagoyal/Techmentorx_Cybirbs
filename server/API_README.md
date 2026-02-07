@@ -975,6 +975,145 @@ curl -X POST http://localhost:5000/generate-quiz \
 
 ---
 
+## Teacher Analytics
+
+### `GET /teacher/analytics/overview`
+**Auth**: Required (teacher only)
+
+Returns high-level statistics across all of the teacher's subjects.
+
+**Response**:
+```json
+{
+  "overview": {
+    "totalSubjects": 3,
+    "totalStudents": 45,
+    "totalQuizSubmissions": 120,
+    "overallAverageScore": 72.5
+  },
+  "subjectStats": [
+    {
+      "subjectId": "...",
+      "subjectName": "Data Structures",
+      "subjectCode": "CS201",
+      "totalStudents": 15,
+      "totalQuizResults": 40,
+      "averageScore": 74.2,
+      "highestScore": 100,
+      "lowestScore": 20,
+      "weakTopics": [
+        { "topic": "Binary Trees", "failCount": 8 }
+      ]
+    }
+  ],
+  "recentResults": [
+    {
+      "student": { "name": "John", "enrollmentId": "CS2023001" },
+      "quiz": "DSA Week 3",
+      "subject": "Data Structures",
+      "score": 65,
+      "weakTopics": ["Recursion"],
+      "submittedAt": "2025-01-15T10:30:00Z"
+    }
+  ]
+}
+```
+
+---
+
+### `GET /teacher/analytics/subjects/:subjectId`
+**Auth**: Required (teacher only)
+
+Returns detailed per-student performance for a specific subject, including quiz history and class-wide weak topics.
+
+**Response**:
+```json
+{
+  "subject": { "_id": "...", "name": "Data Structures", "code": "CS201", "totalEnrolled": 15 },
+  "classAverage": 74.2,
+  "studentPerformance": [
+    {
+      "studentId": "...",
+      "name": "Alice",
+      "email": "alice@example.com",
+      "enrollmentId": "CS2023005",
+      "quizzesTaken": 4,
+      "averageScore": 82.5,
+      "highestScore": 95,
+      "lowestScore": 60,
+      "trend": "up",
+      "weakTopics": [{ "topic": "Graph Traversal", "count": 2 }]
+    }
+  ],
+  "quizzes": [
+    { "_id": "...", "title": "DSA Week 3", "submissions": 12, "averageScore": 71 }
+  ],
+  "classWeakTopics": [
+    { "topic": "Dynamic Programming", "studentsStruggling": 8, "percentageStruggling": 53 }
+  ]
+}
+```
+
+---
+
+### `GET /teacher/analytics/quiz/:quizId`
+**Auth**: Required (teacher only)
+
+Returns per-quiz analytics including question-by-question breakdown and all student results.
+
+**Response**:
+```json
+{
+  "quiz": {
+    "_id": "...",
+    "title": "DSA Week 3",
+    "subject": { "name": "Data Structures", "code": "CS201" },
+    "duration": 20,
+    "totalQuestions": 10,
+    "isActive": false
+  },
+  "stats": {
+    "totalSubmissions": 12,
+    "averageScore": 71,
+    "highestScore": 100,
+    "lowestScore": 30,
+    "passRate": 75
+  },
+  "questionStats": [
+    {
+      "questionIndex": 0,
+      "question": "What is the time complexity of BFS?",
+      "topic": "Graph Traversal",
+      "correctAnswer": 2,
+      "totalAttempts": 12,
+      "correctCount": 8,
+      "accuracy": 67,
+      "optionDistribution": [
+        { "option": "O(n)", "count": 2, "isCorrect": false },
+        { "option": "O(n^2)", "count": 2, "isCorrect": false },
+        { "option": "O(V+E)", "count": 8, "isCorrect": true },
+        { "option": "O(log n)", "count": 0, "isCorrect": false }
+      ]
+    }
+  ],
+  "studentResults": [
+    {
+      "studentId": "...",
+      "name": "Alice",
+      "email": "alice@example.com",
+      "enrollmentId": "CS2023005",
+      "score": 90,
+      "totalCorrect": 9,
+      "totalQuestions": 10,
+      "weakTopics": ["Dynamic Programming"],
+      "submittedAt": "2025-01-15T10:30:00Z"
+    }
+  ]
+}
+```
+
+---
+
 ## Error Responses
 
 All errors follow this format:

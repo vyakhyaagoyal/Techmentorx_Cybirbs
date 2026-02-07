@@ -11,16 +11,19 @@ export default function Navigation() {
   const [user, setUser] = useState<{ name: string; role: string } | null>(null);
 
   const navItems = [
-  { name: "Dashboard", path: "/" },
-  { name: "Analytics", path: "/analytics" },
-  { name: "Vent Out Corner", path: "/vent-out" },
-  { name: "Quiz", path: "/quiz" },
+    { name: "Dashboard", path: "/" },
+    { name: "Analytics", path: "/analytics" },
+    { name: "Vent Out Corner", path: "/vent-out" },
+    { name: "Quiz", path: "/quiz" },
 
-  // Show Engagement if NOT student
-  ...(user?.role !== "student"
-    ? [{ name: "Engagement", path: "/engagement" }]
-    : []),
-];
+    // Show Engagement & Generate Quiz if NOT student
+    ...(user?.role !== "student"
+      ? [
+          { name: "Engagement", path: "/engagement" },
+          { name: "Generate Quiz", path: "/generate-quiz" },
+        ]
+      : []),
+  ];
 
   // Load user on mount
   useEffect(() => {
@@ -43,7 +46,6 @@ export default function Navigation() {
     <nav className="bg-linear-to-r from-emerald-600 to-teal-600 text-white shadow-lg">
       <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-14 sm:h-16">
-
           {/* Logo */}
           <div className="flex items-center">
             <h1 className="text-lg sm:text-2xl font-bold">🌿 Bodha Setu</h1>
@@ -70,13 +72,10 @@ export default function Navigation() {
 
           {/* User Section */}
           <div className="flex items-center gap-3 text-xs sm:text-sm">
-
             {user ? (
               <>
                 <span>
-                  <span className="font-semibold hidden sm:inline">
-                    User:
-                  </span>{" "}
+                  <span className="font-semibold hidden sm:inline">User:</span>{" "}
                   {user.name}
                 </span>
 
@@ -95,9 +94,7 @@ export default function Navigation() {
                 Login
               </Link>
             )}
-
           </div>
-
         </div>
       </div>
     </nav>
