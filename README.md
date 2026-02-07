@@ -289,4 +289,10 @@ Techmentorx_Cybirbs/
 
 ```bash
 npm install
+make 3 terminals
+cd client
 npm run dev
+cd server
+npm run dev
+cd student_engagement_monitor
+python api_server/main.py
