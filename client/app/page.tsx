@@ -1,237 +1,283 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+import Chart from "chart.js/auto";
 
 export default function Home() {
-  const [userName, setUserName] = useState<string>("");
+  const router = useRouter();
 
+  const [userName, setUserName] = useState("");
+  const [authorized, setAuthorized] = useState<boolean | null>(null);
+
+  const chartRef = useRef<HTMLCanvasElement | null>(null);
+  const chartInstance = useRef<Chart | null>(null);
+
+  /* ============================
+     Dummy Weekly Data (Demo)
+  ============================ */
+  const weeklyData = [
+    72, 76, 80, 84, 88
+  ];
+
+  /* ============================
+     Auth + User Check
+  ============================ */
   useEffect(() => {
-  const user = localStorage.getItem("user");
+    const user = localStorage.getItem("user");
 
-  if (user) {
-    const parsedUser = JSON.parse(user);
-    setUserName(parsedUser.name);
-  }
-}, []);
+    if (!user) {
+      router.replace("/login");
+      return;
+    }
 
-  const [todos] = useState([
-    {
-      id: 1,
-      subject: "Data Structures",
-      topic: "Binary Search Trees",
-      deadline: "2 days",
-      priority: "high",
-      completed: false,
-    },
-    {
-      id: 2,
-      subject: "Operating Systems",
-      topic: "Process Synchronization",
-      deadline: "4 days",
-      priority: "medium",
-      completed: false,
-    },
-    {
-      id: 3,
-      subject: "DBMS",
-      topic: "Normalization Techniques",
-      deadline: "6 days",
-      priority: "high",
-      completed: false,
-    },
-    {
-      id: 4,
-      subject: "Computer Networks",
-      topic: "TCP/IP Protocol",
-      deadline: "5 days",
-      priority: "low",
-      completed: false,
-    },
-  ]);
+    const parsed = JSON.parse(user);
+
+    if (parsed.role !== "student") {
+      router.replace("/login");
+      return;
+    }
+
+    setUserName(parsed.name);
+    setAuthorized(true);
+  }, [router]);
+
+  /* ============================
+     Render Chart
+  ============================ */
+  useEffect(() => {
+    if (!authorized || !chartRef.current) return;
+
+    if (chartInstance.current) {
+      chartInstance.current.destroy();
+    }
+
+    chartInstance.current = new Chart(chartRef.current, {
+      type: "line",
+
+      data: {
+        labels: ["Week 1", "Week 2", "Week 3", "Week 4", "Week 5"],
+
+        datasets: [
+          {
+            label: "Weekly Performance",
+
+            data: weeklyData,
+
+            borderColor: "#6366f1",
+            backgroundColor: "rgba(99,102,241,0.15)",
+
+            borderWidth: 3,
+            fill: true,
+            tension: 0.4,
+
+            pointRadius: 6,
+            pointBackgroundColor: "#6366f1",
+          },
+        ],
+      },
+
+      options: {
+        responsive: true,
+
+        plugins: {
+          legend: {
+            display: true,
+          },
+        },
+
+        scales: {
+          y: {
+            min: 50,
+            max: 100,
+          },
+        },
+      },
+    });
+  }, [authorized]);
+
+  /* ============================
+     Prevent UI Flash
+  ============================ */
+  if (authorized === null) return null;
+  if (!authorized) return null;
+
+  /* ============================
+     UI
+  ============================ */
+
+  /* ============================
+   UI
+============================ */
+
+return (
+  <div className="min-h-screen w-full flex justify-center bg-gray-50">
+
+    <main className="w-full max-w-7xl py-8 px-4 flex flex-col gap-12">
+
+      {/* Welcome */}
+      <div>
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
+          Welcome back, {userName}! 🌿
+        </h1>
+
+        <p className="mt-2 text-gray-600">
+          Here's your learning dashboard
+        </p>
+      </div>
+
+      {/* Weekly Chart */}
+      <section className="bg-white p-6 rounded-xl shadow border">
+
+        <h3 className="text-xl font-bold mb-4">
+          📈 Weekly Progress Trend
+        </h3>
+
+        <canvas ref={chartRef}></canvas>
+
+      </section>
+
+      {/* Quick Stats */}
+      <section className="grid grid-cols-2 md:grid-cols-4 gap-5">
+
+        <Stat title="Overall Position" value="Top 25%" color="emerald" />
+        <Stat title="Pending Quizzes" value="2" color="amber" />
+        <Stat title="Topics to Review" value="4" color="teal" />
+        <Stat title="Attendance" value="87%" color="green" />
+
+      </section>
+
+      {/* Main Features */}
+      <section className="grid md:grid-cols-2 gap-6">
+
+        <Link href="/quiz">
+          <Feature
+            title="📝 Current Quiz"
+            desc="Today's OS quiz"
+            color="from-teal-500 to-emerald-600"
+          />
+        </Link>
+
+        <Link href="/vent-out">
+          <Feature
+            title="💭 Wellness Corner"
+            desc="Mental health support"
+            color="from-green-500 to-lime-600"
+          />
+        </Link>
+
+      </section>
+
+      {/* Secondary Features */}
+      <section className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+
+        <Link href="/analytics">
+          <MiniCard
+            title="📊 Analytics"
+            desc="View your performance"
+          />
+        </Link>
+
+        <Link href="/engagement">
+          <MiniCard
+            title="👀 Engagement Tracking"
+            desc="Track participation"
+          />
+        </Link>
+
+        <MiniCard
+          title="🎯 Study Resources"
+          desc="Access learning materials"
+        />
+
+      </section>
+
+    </main>
+  </div>
+);
+}
+
+/* ============================
+   Components
+============================ */
+function Stat({
+  title,
+  value,
+  color,
+}: {
+  title: string;
+  value: string;
+  color: "emerald" | "amber" | "teal" | "green";
+}) {
+  const colors = {
+    emerald: "text-emerald-600",
+    amber: "text-amber-600",
+    teal: "text-teal-600",
+    green: "text-green-600",
+  };
 
   return (
-    <div className="min-h-full w-full flex justify-center">
-      <main className="w-[calc(_100%_-_5em_)] mx-auto py-6 sm:py-8 px-4 sm:px-6 lg:px-8 flex flex-col gap-14">
-        {/* Welcome Section */}
-        <div className="mb-6 sm:mb-8">
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
-  Welcome back, {userName || "Student"}! 🌿
-</h1>
-          <p className="mt-2 text-sm sm:text-base text-gray-600">
-            Here's your learning dashboard for today
-          </p>
-        </div>
+    <div className="bg-white p-5 rounded-xl shadow border">
 
-        {/* Quick Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
-          <div className="pbg-white p-4 sm:p-6 rounded-xl shadow-sm border border-emerald-100">
-            <div className="text-xs sm:text-sm text-gray-500">
-              Overall Position
-            </div>
-            <div className="text-xl sm:text-2xl font-bold text-emerald-600 mt-1 sm:mt-2">
-              Top 25%
-            </div>
-          </div>
-          <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-emerald-100">
-            <div className="text-xs sm:text-sm text-gray-500">
-              Pending Quizzes
-            </div>
-            <div className="text-xl sm:text-2xl font-bold text-amber-600 mt-1 sm:mt-2">
-              2
-            </div>
-          </div>
-          <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-emerald-100">
-            <div className="text-xs sm:text-sm text-gray-500">
-              Topics to Review
-            </div>
-            <div className="text-xl sm:text-2xl font-bold text-teal-600 mt-1 sm:mt-2">
-              4
-            </div>
-          </div>
-          <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-gray-200">
-            <div className="text-xs sm:text-sm text-gray-500">Attendance</div>
-            <div className="text-xl sm:text-2xl font-bold text-green-600 mt-1 sm:mt-2">
-              87%
-            </div>
-          </div>
-        </div>
+      <div className="text-sm text-gray-500">
+        {title}
+      </div>
 
-        {/* To-Do Tasks Section - Primary Feature */}
-        <div className="bg-white rounded-xl shadow-md p-4 sm:p-6 mb-6 sm:mb-8">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4 sm:mb-6">
-            <h2 className="text-xl sm:text-2xl font-bold text-gray-900">
-              📚 Topics to Study
-            </h2>
-            <span className="text-xs sm:text-sm text-emerald-600 font-medium">
-              🌱 Personalized learning path
-            </span>
-          </div>
-          <div className="space-y-3 sm:space-y-4">
-            {todos.map((todo) => (
-              <div
-                key={todo.id}
-                className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-3 sm:p-4 border border-gray-200 rounded-xl hover:shadow-md transition-shadow"
-              >
-                <div className="flex items-start sm:items-center gap-3 sm:gap-4">
-                  <input
-                    type="checkbox"
-                    className="h-5 w-5 text-indigo-600 rounded mt-1 sm:mt-0 shrink-0"
-                    checked={todo.completed}
-                    readOnly
-                  />
-                  <div className="min-w-0 flex-1">
-                    <h3 className="font-semibold text-gray-900 text-sm sm:text-base">
-                      {todo.subject}
-                    </h3>
-                    <p className="text-xs sm:text-sm text-gray-600 truncate">
-                      {todo.topic}
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-center justify-between sm:justify-end gap-3 sm:gap-4 pl-8 sm:pl-0">
-                  <span
-                    className={`px-2 sm:px-3 py-1 rounded-full text-xs font-medium shrink-0 ${
-                      todo.priority === "high"
-                        ? "bg-red-100 text-red-800"
-                        : todo.priority === "medium"
-                          ? "bg-yellow-100 text-yellow-800"
-                          : "bg-green-100 text-green-800"
-                    }`}
-                  >
-                    {todo.priority.toUpperCase()}
-                  </span>
-                  <span className="text-xs sm:text-sm text-gray-500 whitespace-nowrap">
-                    Due in {todo.deadline}
-                  </span>
-                  <button className="px-3 sm:px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors text-xs sm:text-sm font-medium whitespace-nowrap">
-                    Start Learning
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+      <div
+        className={`text-2xl font-bold mt-2 ${colors[color]}`}
+      >
+        {value}
+      </div>
 
-        {/* Primary Features Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
-          {/* Current Quiz */}
-          <Link href="/quiz" className="block">
-            <div className="bg-linear-to-br from-teal-500 to-emerald-600 rounded-xl shadow-lg p-4 sm:p-6 text-white hover:shadow-xl transition-shadow cursor-pointer h-full">
-              <div className="flex items-center justify-between mb-3 sm:mb-4">
-                <h3 className="text-lg sm:text-2xl font-bold">
-                  📝 Current Quiz
-                </h3>
-                <span className="bg-white text-emerald-600 px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-semibold">
-                  Active
-                </span>
-              </div>
-              <p className="mb-3 sm:mb-4 text-sm sm:text-base opacity-95">
-                Complete today's post-lecture quiz for Operating Systems
-              </p>
-              <div className="flex items-center justify-between text-xs sm:text-sm">
-                <span className="opacity-90">Time remaining: 1h 45m</span>
-                <span className="font-semibold">20 mins quiz →</span>
-              </div>
-            </div>
-          </Link>
+    </div>
+  );
+}
 
-          {/* Vent Out Corner */}
-          <Link href="/vent-out" className="block">
-            <div className="bg-linear-to-br from-green-500 to-lime-600 rounded-xl shadow-lg p-4 sm:p-6 text-white hover:shadow-xl transition-shadow cursor-pointer h-full">
-              <div className="flex items-center justify-between mb-3 sm:mb-4">
-                <h3 className="text-lg sm:text-2xl font-bold">
-                  💭 Wellness Corner
-                </h3>
-                <span className="bg-white text-green-600 px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-semibold">
-                  New
-                </span>
-              </div>
-              <p className="mb-3 sm:mb-4 text-sm sm:text-base opacity-95">
-                Mental health support, games, and behavioral analysis
-              </p>
-              <div className="flex items-center justify-between text-xs sm:text-sm">
-                <span className="opacity-90">Your wellness matters</span>
-                <span className="font-semibold">Explore →</span>
-              </div>
-            </div>
-          </Link>
-        </div>
 
-        {/* Secondary Features */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
-          <Link href="/analytics" className="block">
-            <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6 border border-gray-200 hover:shadow-md transition-shadow h-full">
-              <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-2">
-                📊 Analytics
-              </h3>
-              <p className="text-xs sm:text-sm text-gray-600">
-                View your performance and attendance
-              </p>
-            </div>
-          </Link>
+function Feature({
+  title,
+  desc,
+  color,
+}: {
+  title: string;
+  desc: string;
+  color: string;
+}) {
+  return (
+    <div
+      className={`bg-linear-to-br ${color} rounded-xl shadow-lg p-6 text-white hover:scale-[1.02] transition cursor-pointer`}
+    >
+      <h3 className="text-xl font-bold mb-2">
+        {title}
+      </h3>
 
-          <Link href="/engagement" className="block">
-            <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6 border border-emerald-100 hover:shadow-md transition-shadow h-full">
-              <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-2">
-                👀 Engagement Tracking
-              </h3>
-              <p className="text-xs sm:text-sm text-gray-600">
-                Track your lecture participation
-              </p>
-            </div>
-          </Link>
+      <p className="opacity-90">
+        {desc}
+      </p>
+    </div>
+  );
+}
 
-          <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6 border border-gray-200 hover:shadow-md transition-shadow cursor-pointer sm:col-span-2 md:col-span-1">
-            <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-2">
-              🎯 Study Resources
-            </h3>
-            <p className="text-xs sm:text-sm text-gray-600">
-              Access PPTs and learning materials
-            </p>
-          </div>
-        </div>
-      </main>
+
+function MiniCard({
+  title,
+  desc,
+}: {
+  title: string;
+  desc: string;
+}) {
+  return (
+    <div className="bg-white rounded-xl shadow-sm p-6 border hover:shadow-md transition cursor-pointer h-full">
+
+      <h3 className="font-semibold text-gray-900 mb-2">
+        {title}
+      </h3>
+
+      <p className="text-sm text-gray-600">
+        {desc}
+      </p>
+
     </div>
   );
 }

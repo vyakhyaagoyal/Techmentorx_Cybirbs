@@ -45,7 +45,7 @@ export default function LoginPage() {
       if (data.user.role === "teacher") {
         router.push("/engagement");
       } else {
-        router.push("/dashboard");
+        router.push("/");
       }
     } catch (err: any) {
       setError(err.message || "Something went wrong");
