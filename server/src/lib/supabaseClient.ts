@@ -1,7 +1,14 @@
-import { createClient } from "@supabase/supabase-js";
+import mongoose from "mongoose";
 
-// Create a supabase client to connect with database
-export const supabase = createClient(
-  process.env.SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_KEY!,
-);
+// MongoDB connection
+export async function connectDB() {
+  try {
+    await mongoose.connect(process.env.MONGODB_URI!);
+    console.log("MongoDB connected");
+  } catch (error) {
+    console.error("MongoDB connection failed:", error);
+    process.exit(1);
+  }
+}
+
+export default mongoose;

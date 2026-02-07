@@ -1,21 +1,22 @@
-import { jwtVerify, createRemoteJWKSet } from "jose";
+import { jwtVerify } from "jose";
 import { UnauthorizedError } from "../errors/httpErrors.js";
 
-// Use JWKS to dynamically get JWT key
-const PROJECT_JWKS = createRemoteJWKSet(
-  new URL(`${process.env.SUPABASE_URL}/auth/v1/.well-known/jwks.json`),
-);
+const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET!);
 
 export default async function verifyJwt(token: string) {
-  const { payload } = await jwtVerify(token, PROJECT_JWKS);
+  try {
+    const { payload } = await jwtVerify(token, JWT_SECRET);
 
-  if (typeof payload.sub != "string") {
-    throw new UnauthorizedError();
+    if (typeof payload.sub != "string") {
+      throw new UnauthorizedError();
+    }
+
+    return {
+      id: payload.sub as string,
+      email: payload.email as string | undefined,
+      role: payload.role as string | undefined,
+    };
+  } catch (error) {
+    throw new UnauthorizedError("Invalid or expired token");
   }
-
-  return {
-    id: payload.sub as string,
-    email: payload.email as string | undefined,
-    role: payload.role as string | undefined,
-  };
 }

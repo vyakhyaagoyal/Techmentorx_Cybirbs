@@ -5,6 +5,7 @@ import "./lib/env.js";
 
 // Library imports
 import express, { type Express } from "express";
+import { connectDB } from "./lib/supabaseClient.js";
 import path from "path";
 import cookieParser from "cookie-parser";
 import logger from "morgan";
@@ -16,6 +17,9 @@ import { errorHandler } from "./middlewares/errorHandler.js";
 import { NotFoundError } from "./errors/httpErrors.js";
 const app: Express = express();
 const __dirname = import.meta.dirname;
+
+// Connect to MongoDB
+connectDB();
 
 // External Middlewares
 app.use(logger("dev"));
