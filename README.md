@@ -105,7 +105,163 @@ Student dashboard includes:
 8. Mental wellness tracked monthly  
 
 ---
-
+## File Structure
+Techmentorx_Cybirbs/
+├── .gitignore
+├── README.md
+├── client/
+│   ├── .gitignore
+│   ├── PROJECT_README.md
+│   ├── app/
+│   │   ├── analytics/
+│   │   │   └── page.tsx
+│   │   ├── components/
+│   │   │   ├── LeafDecoration.tsx
+│   │   │   └── Navigation.tsx
+│   │   ├── engagement/
+│   │   │   └── page.tsx
+│   │   ├── favicon.ico
+│   │   ├── generate-quiz/
+│   │   │   └── page.tsx
+│   │   ├── globals.css
+│   │   ├── layout.tsx
+│   │   ├── login/
+│   │   │   └── page.tsx
+│   │   ├── page.tsx
+│   │   ├── quiz/
+│   │   │   └── page.tsx
+│   │   ├── register/
+│   │   │   └── page.tsx
+│   │   ├── teacher-dashboard/
+│   │   │   └── page.tsx
+│   │   └── vent-out/
+│   │       ├── CreativeGame.tsx
+│   │       ├── FocusGame.tsx
+│   │       ├── MemoryGame.tsx
+│   │       ├── MindfulnessGame.tsx
+│   │       └── page.tsx
+│   ├── eslint.config.mjs
+│   ├── next.config.ts
+│   ├── package-lock.json
+│   ├── package.json
+│   ├── postcss.config.mjs
+│   ├── public/
+│   │   ├── file.svg
+│   │   ├── globe.svg
+│   │   ├── next.svg
+│   │   ├── vercel.svg
+│   │   └── window.svg
+│   ├── student graph.html
+│   ├── teacher.html
+│   └── tsconfig.json
+├── design/
+│   └── README.md
+├── server/
+│   ├── .gitignore
+│   ├── API_README.md
+│   ├── PYTHON_SERVER_API.md
+│   ├── api.yml
+│   ├── package-lock.json
+│   ├── package.json
+│   ├── pnpm-lock.yaml
+│   ├── pnpm-workspace.yaml
+│   ├── src/
+│   │   ├── app.ts
+│   │   ├── errors/
+│   │   │   ├── AppError.ts
+│   │   │   └── httpErrors.ts
+│   │   ├── lib/
+│   │   │   ├── auth.ts
+│   │   │   ├── db.ts
+│   │   │   ├── env.ts
+│   │   │   ├── geminiClient.ts
+│   │   │   ├── generateJwt.ts
+│   │   │   ├── pythonClient.ts
+│   │   │   ├── rateLimiter.ts
+│   │   │   ├── requireRole.ts
+│   │   │   ├── routeHandler.ts
+│   │   │   └── verifyJwt.ts
+│   │   ├── middlewares/
+│   │   │   └── errorHandler.ts
+│   │   ├── models/
+│   │   │   ├── ChatConversation.ts
+│   │   │   ├── EngagementData.ts
+│   │   │   ├── Lecture.ts
+│   │   │   ├── MentalHealthReport.ts
+│   │   │   ├── Quiz.ts
+│   │   │   ├── QuizResult.ts
+│   │   │   ├── StudyTopic.ts
+│   │   │   ├── Subject.ts
+│   │   │   └── User.ts
+│   │   ├── routes/
+│   │   │   ├── auth.ts
+│   │   │   ├── chat.ts
+│   │   │   ├── dashboard.ts
+│   │   │   ├── engagement.ts
+│   │   │   ├── generateQuiz.ts
+│   │   │   ├── index.ts
+│   │   │   ├── me.ts
+│   │   │   ├── mentalHealth.ts
+│   │   │   ├── quiz.ts
+│   │   │   ├── study.ts
+│   │   │   ├── teacher.ts
+│   │   │   └── teacherAnalytics.ts
+│   │   ├── server.ts
+│   │   └── utils/
+│   │       └── tryCatch.ts
+│   ├── tests/
+│   │   └── .gitkeep
+│   ├── tsconfig.json
+│   └── types/
+│       ├── express.d.ts
+│       ├── responseError.ts
+│       └── router.ts
+├── student_engagement_monitor/
+│   ├── .gitignore
+│   ├── QUICKSTART.md
+│   ├── README.md
+│   ├── api_server/
+│   │   └── main.py
+│   ├── configs/
+│   │   └── config.yaml
+│   ├── outputs/
+│   │   └── reports/
+│   │       └── confusion_matrices.png
+│   ├── requirements.txt
+│   ├── requirements_api.txt
+│   ├── scripts/
+│   │   ├── download_dataset.py
+│   │   ├── preprocess_all.py
+│   │   └── run_inference.py
+│   ├── src/
+│   │   ├── __init__.py
+│   │   ├── cctv_pipeline/
+│   │   │   ├── __init__.py
+│   │   │   ├── engagement_processor.py
+│   │   │   └── student_detector.py
+│   │   ├── dashboard/
+│   │   │   ├── __init__.py
+│   │   │   └── dashboard_app.py
+│   │   ├── data_processing/
+│   │   │   ├── __init__.py
+│   │   │   ├── dataset_loader.py
+│   │   │   └── frame_extractor.py
+│   │   ├── feature_extraction/
+│   │   │   ├── __init__.py
+│   │   │   ├── facial_expression_detector.py
+│   │   │   ├── feature_aggregator.py
+│   │   │   ├── hand_movement_detector.py
+│   │   │   ├── head_pose_estimator.py
+│   │   │   └── phone_usage_detector.py
+│   │   ├── models/
+│   │   │   ├── __init__.py
+│   │   │   ├── engagement_classifier.py
+│   │   │   ├── evaluate_model.py
+│   │   │   └── train_model.py
+│   │   └── utils.py
+│   └── yolov8n.pt
+└── teacher.html
+```
 ## 🧠 Tech Stack
 
 ### Frontend
