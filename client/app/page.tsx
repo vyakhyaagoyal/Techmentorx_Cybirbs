@@ -1,9 +1,20 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function Home() {
+  const [userName, setUserName] = useState<string>("");
+
+  useEffect(() => {
+  const user = localStorage.getItem("user");
+
+  if (user) {
+    const parsedUser = JSON.parse(user);
+    setUserName(parsedUser.name);
+  }
+}, []);
+
   const [todos] = useState([
     {
       id: 1,
@@ -45,8 +56,8 @@ export default function Home() {
         {/* Welcome Section */}
         <div className="mb-6 sm:mb-8">
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
-            Welcome back, Purval! 🌿
-          </h1>
+  Welcome back, {userName || "Student"}! 🌿
+</h1>
           <p className="mt-2 text-sm sm:text-base text-gray-600">
             Here's your learning dashboard for today
           </p>

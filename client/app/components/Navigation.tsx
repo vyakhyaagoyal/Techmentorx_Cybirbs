@@ -46,7 +46,7 @@ export default function Navigation() {
 
           {/* Logo */}
           <div className="flex items-center">
-            <h1 className="text-lg sm:text-2xl font-bold">🌿 BodhaSetu</h1>
+            <h1 className="text-lg sm:text-2xl font-bold">🌿 Bodha Setu</h1>
           </div>
 
           {/* Nav Links */}
@@ -75,7 +75,7 @@ export default function Navigation() {
               <>
                 <span>
                   <span className="font-semibold hidden sm:inline">
-                    Student:
+                    User:
                   </span>{" "}
                   {user.name}
                 </span>

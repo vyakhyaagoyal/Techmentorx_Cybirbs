@@ -258,28 +258,48 @@ return (
                 </div>
               </div>
 
-              {/* Attention Throughout Lecture */}
               <div className="border-t border-gray-200 pt-4">
-                <h4 className="text-sm font-semibold text-gray-700 mb-3">
-                  Attention Throughout Lecture
-                </h4>
-                <div className="flex items-end space-x-2 h-32">
-                  {lecture.attentionSpans.map((span, idx) => (
-                    <div
-                      key={idx}
-                      className="flex-1 flex flex-col items-center"
-                    >
-                      <div
-                        className="w-full bg-linear-to-t from-emerald-500 to-teal-300 rounded-t"
-                        style={{ height: `${span}%` }}
-                      ></div>
-                      <span className="text-xs text-gray-500 mt-2">
-                        {(idx + 1) * 10}m
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
+  <h4 className="text-sm font-semibold text-gray-700 mb-3">
+    Attention Throughout Lecture
+  </h4>
+
+  {/* Chart Container */}
+  <div className="flex items-end justify-between h-36 px-2 bg-gray-50 rounded-lg">
+
+    {lecture.attentionSpans.map((span, idx) => {
+      // Convert % to px (max 120px height)
+      const barHeight = Math.max(15, (span / 100) * 120);
+
+      return (
+        <div
+          key={idx}
+          className="flex flex-col items-center justify-end flex-1 mx-1"
+        >
+          {/* Bar */}
+          <div
+            className={`w-full max-w-[20px] rounded-t-md transition-all duration-500 ${
+  span >= 75
+    ? "bg-green-500"
+    : span >= 50
+    ? "bg-blue-500"
+    : span >= 30
+    ? "bg-yellow-500"
+    : "bg-red-500"
+}`}
+
+            style={{ height: `${barHeight}px` }}
+          ></div>
+
+          {/* Label */}
+          <span className="text-xs text-gray-500 mt-2">
+            {(idx + 1) * 10}m
+          </span>
+        </div>
+      );
+    })}
+
+  </div>
+</div>
 
               {/* AI Insights */}
               {lecture.yourEngagement < 50 && (

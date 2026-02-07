@@ -1,12 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import { useEffect } from "react";
+
 
 export default function Quiz() {
-  const [currentQuestion, setCurrentQuestion] = useState(0);
-  const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
-  const [answers, setAnswers] = useState<number[]>([]);
-  const [quizCompleted, setQuizCompleted] = useState(false);
 
   const quiz = {
     subject: "Operating Systems",
@@ -70,15 +68,44 @@ export default function Quiz() {
       },
     ],
   };
+  
+  const [currentQuestion, setCurrentQuestion] = useState(0);
+  const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
+  const [answers, setAnswers] = useState<number[]>([]);
+  const [quizCompleted, setQuizCompleted] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(quiz.duration * 60); // in seconds
 
+useEffect(() => {
+  if (quizCompleted) return;
+
+  if (timeLeft <= 0) {
+    setQuizCompleted(true);
+    return;
+  }
+
+  const timer = setInterval(() => {
+    setTimeLeft((prev) => prev - 1);
+  }, 1000);
+
+  return () => clearInterval(timer);
+}, [timeLeft, quizCompleted]);
+
+const formatTime = (seconds: number) => {
+  const mins = Math.floor(seconds / 60);
+  const secs = seconds % 60;
+
+  return `${mins}:${secs < 10 ? "0" : ""}${secs}`;
+};
+
+  // Handle answer selection
   const handleAnswerSelect = (index: number) => {
     setSelectedAnswer(index);
   };
 
+  // Next question
   const handleNextQuestion = () => {
     if (selectedAnswer !== null) {
-      const newAnswers = [...answers, selectedAnswer];
-      setAnswers(newAnswers);
+      setAnswers([...answers, selectedAnswer]);
 
       if (currentQuestion < quiz.questions.length - 1) {
         setCurrentQuestion(currentQuestion + 1);
@@ -89,250 +116,266 @@ export default function Quiz() {
     }
   };
 
+  // Calculate score
   const calculateScore = () => {
     let correct = 0;
+
     answers.forEach((answer, index) => {
       if (answer === quiz.questions[index].correct) {
         correct++;
       }
     });
+
     return (correct / quiz.questions.length) * 100;
   };
 
-  const getWeakTopics = (): string[] => {
+  // Weak topics
+  const getWeakTopics = () => {
     const weak: string[] = [];
+
     answers.forEach((answer, index) => {
       if (answer !== quiz.questions[index].correct) {
         weak.push(quiz.questions[index].question);
       }
     });
+
     return weak;
   };
+
+  /* ===============================
+     QUIZ COMPLETED SCREEN
+  =============================== */
 
   if (quizCompleted) {
     const score = calculateScore();
     const weakTopics = getWeakTopics();
 
     return (
-      <div className="min-h-screen">
-        <main className="max-w-4xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+      <div className="min-h-screen bg-gray-50">
+        <main className="max-w-4xl mx-auto py-6 px-4">
+
           <div className="bg-white rounded-lg shadow-lg p-8">
+
+            {/* Header */}
             <div className="text-center mb-8">
               <div className="text-6xl mb-4">
                 {score >= 80 ? "🎉" : score >= 60 ? "👍" : "📚"}
               </div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+
+              <h1 className="text-3xl font-bold mb-2">
                 Quiz Completed!
               </h1>
-              <p className="text-gray-600">Here are your results</p>
+
+              <p className="text-gray-600">
+                Here are your results
+              </p>
             </div>
 
-            <div className="bg-linear-to-br from-emerald-600 to-teal-600 rounded-lg p-6 text-white mb-8">
-              <div className="text-center">
-                <div className="text-5xl font-bold mb-2">
-                  {score.toFixed(0)}%
-                </div>
-                <div className="text-lg">Your Score</div>
+            {/* Score */}
+            <div className="bg-linear-to-br from-emerald-600 to-teal-600 rounded-lg p-6 text-white mb-8 text-center">
+              <div className="text-5xl font-bold mb-2">
+                {score.toFixed(0)}%
               </div>
+              <div>Your Score</div>
             </div>
 
+            {/* Stats */}
             <div className="grid grid-cols-3 gap-4 mb-8">
-              <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
+
+              <div className="bg-green-50 p-4 rounded text-center">
                 <div className="text-2xl font-bold text-green-600">
                   {
                     answers.filter(
-                      (ans, idx) => ans === quiz.questions[idx].correct,
+                      (a, i) => a === quiz.questions[i].correct
                     ).length
                   }
                 </div>
-                <div className="text-sm text-gray-600">Correct</div>
+                <div className="text-sm">Correct</div>
               </div>
-              <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-center">
+
+              <div className="bg-red-50 p-4 rounded text-center">
                 <div className="text-2xl font-bold text-red-600">
                   {weakTopics.length}
                 </div>
-                <div className="text-sm text-gray-600">Incorrect</div>
+                <div className="text-sm">Incorrect</div>
               </div>
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-center">
+
+              <div className="bg-blue-50 p-4 rounded text-center">
                 <div className="text-2xl font-bold text-blue-600">
                   {quiz.questions.length}
                 </div>
-                <div className="text-sm text-gray-600">Total</div>
+                <div className="text-sm">Total</div>
               </div>
+
             </div>
 
+            {/* Weak Topics */}
             {weakTopics.length > 0 && (
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 mb-6">
-                <h2 className="text-lg font-bold text-yellow-900 mb-4">
-                  🎯 Topics Added to Your Study List
+              <div className="bg-yellow-50 p-6 rounded mb-6">
+
+                <h2 className="font-bold mb-3">
+                  🎯 Topics To Revise
                 </h2>
-                <p className="text-sm text-yellow-800 mb-4">
-                  Based on your quiz performance, these topics need attention:
-                </p>
+
                 <ul className="space-y-2">
-                  {weakTopics.map((topic, index) => (
-                    <li
-                      key={index}
-                      className="text-sm text-yellow-900 flex items-start"
-                    >
-                      <span className="mr-2">•</span>
-                      <span className="flex-1">
-                        {topic.substring(0, 50)}...
-                      </span>
-                    </li>
+                  {weakTopics.map((t, i) => (
+                    <li key={i}>• {t}</li>
                   ))}
                 </ul>
-                <div className="mt-4 p-3 bg-white rounded border border-yellow-300">
-                  <p className="text-sm text-gray-700">
-                    <strong>Deadline:</strong> Complete within 7 days
-                  </p>
-                </div>
+
               </div>
             )}
 
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-6">
-              <h2 className="text-lg font-bold text-blue-900 mb-3">
-                💡 Learning Recommendation
-              </h2>
-              <p className="text-sm text-blue-800 mb-4">
-                Personalized learning materials are ready for the topics you
-                struggled with. These materials are based on the PPT your
-                teacher uploaded for today's lecture.
-              </p>
-              <button className="w-full py-3 bg-emerald-600 text-white rounded-lg font-semibold hover:bg-emerald-700 transition-colors">
-                Start Learning Session
-              </button>
-            </div>
+            {/* Buttons */}
+            <div className="flex gap-4">
 
-            <div className="flex space-x-4">
               <button
                 onClick={() => (window.location.href = "/")}
-                className="flex-1 py-3 bg-gray-200 text-gray-700 rounded-lg font-semibold hover:bg-gray-300 transition-colors"
+                className="flex-1 py-3 bg-gray-200 rounded font-semibold"
               >
-                Back to Dashboard
+                Dashboard
               </button>
+
               <button
-                onClick={() => window.location.reload()}
-                className="flex-1 py-3 bg-emerald-600 text-white rounded-lg font-semibold hover:bg-emerald-700 transition-colors"
+                onClick={() => {
+  setCurrentQuestion(0);
+  setAnswers([]);
+  setSelectedAnswer(null);
+  setQuizCompleted(false);
+  setTimeLeft(quiz.duration * 60);
+}}
+                className="flex-1 py-3 bg-emerald-600 text-white rounded font-semibold"
               >
-                Retake Quiz
+                Retake
               </button>
+
             </div>
+
           </div>
         </main>
       </div>
     );
   }
 
+  /* ===============================
+     MAIN QUIZ SCREEN
+  =============================== */
+
   return (
     <div className="min-h-screen bg-gray-50">
-      <main className="max-w-4xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-        {/* Quiz Header */}
-        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">
-                {quiz.subject}
-              </h1>
-              <p className="text-gray-600">{quiz.topic}</p>
-            </div>
-            <div className="text-right">
-              <div className="text-3xl font-bold text-emerald-600">18:45</div>
-              <div className="text-sm text-gray-500">Time Remaining</div>
-            </div>
-          </div>
-          <div className="flex items-center justify-between text-sm text-gray-600">
-            <span>
-              Question {currentQuestion + 1} of {quiz.totalQuestions}
-            </span>
-            <span>{quiz.duration} minutes total</span>
-          </div>
-          <div className="mt-3 w-full bg-gray-200 rounded-full h-2">
-            <div
-              className="bg-indigo-600 h-2 rounded-full transition-all"
-              style={{
-                width: `${((currentQuestion + 1) / quiz.totalQuestions) * 100}%`,
-              }}
-            ></div>
-          </div>
+      <main className="max-w-4xl mx-auto py-6 px-4">
+
+        {/* Intro Section */}
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-5 mb-6">
+
+          <h2 className="font-bold text-blue-900 mb-2">
+            📘 Today’s Learning Recap
+          </h2>
+
+          <p className="text-sm text-blue-800">
+            Your teacher has uploaded today’s PPT based on
+            <strong> {quiz.topic}</strong>.  
+            This quiz is designed to help you revise and
+            remember what you learned in class.
+            Let’s check your understanding!
+          </p>
+
         </div>
 
-        {/* Question Card */}
-        <div className="bg-white rounded-lg shadow-lg p-8">
-          <div className="mb-8">
-            <div className="text-sm text-gray-500 mb-3">
-              Question {currentQuestion + 1}
+        {/* Quiz Header */}
+        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+
+          <div className="flex justify-between mb-4">
+
+            <div>
+              <h1 className="text-2xl font-bold">
+                {quiz.subject}
+              </h1>
+
+              <p className="text-gray-600">
+                {quiz.topic}
+              </p>
             </div>
-            <h2 className="text-xl font-semibold text-gray-900">
-              {quiz.questions[currentQuestion].question}
-            </h2>
-          </div>
 
-          <div className="space-y-4">
-            {quiz.questions[currentQuestion].options.map((option, index) => (
-              <div
-                key={index}
-                onClick={() => handleAnswerSelect(index)}
-                className={`border-2 rounded-lg p-4 cursor-pointer transition-all ${
-                  selectedAnswer === index
-                    ? "border-emerald-600 bg-emerald-50"
-                    : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
-                }`}
-              >
-                <div className="flex items-center">
-                  <div
-                    className={`w-6 h-6 rounded-full border-2 flex items-center justify-center mr-4 ${
-                      selectedAnswer === index
-                        ? "border-emerald-600 bg-emerald-600"
-                        : "border-gray-300"
-                    }`}
-                  >
-                    {selectedAnswer === index && (
-                      <div className="w-3 h-3 bg-white rounded-full"></div>
-                    )}
-                  </div>
-                  <span
-                    className={
-                      selectedAnswer === index
-                        ? "font-medium text-gray-900"
-                        : "text-gray-700"
-                    }
-                  >
-                    {option}
-                  </span>
-                </div>
+            <div className="text-right">
+              <div className="text-3xl font-bold text-emerald-600">
+  {formatTime(timeLeft)}
+</div>
+
+              <div className="text-sm">
+                Time Remaining
               </div>
-            ))}
+            </div>
+
           </div>
 
+          <div className="text-sm text-gray-600 flex justify-between">
+            <span>
+              Question {currentQuestion + 1} / {quiz.totalQuestions}
+            </span>
+
+            <span>
+              {quiz.duration} minutes
+            </span>
+          </div>
+
+        </div>
+
+        {/* Question */}
+        <div className="bg-white shadow-lg rounded-lg p-8">
+
+          <h2 className="text-xl font-semibold mb-6">
+            {quiz.questions[currentQuestion].question}
+          </h2>
+
+          {/* Options */}
+          <div className="space-y-4">
+
+            {quiz.questions[currentQuestion].options.map(
+              (option, index) => (
+                <div
+                  key={index}
+                  onClick={() => handleAnswerSelect(index)}
+                  className={`border-2 p-4 rounded cursor-pointer ${
+                    selectedAnswer === index
+                      ? "border-emerald-600 bg-emerald-50"
+                      : "border-gray-200"
+                  }`}
+                >
+                  {option}
+                </div>
+              )
+            )}
+
+          </div>
+
+          {/* Buttons */}
           <div className="mt-8 flex justify-between">
+
             <button
               disabled={currentQuestion === 0}
-              onClick={() => setCurrentQuestion(currentQuestion - 1)}
-              className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              onClick={() =>
+                setCurrentQuestion(currentQuestion - 1)
+              }
+              className="px-6 py-3 border rounded disabled:opacity-50"
             >
               Previous
             </button>
+
             <button
               disabled={selectedAnswer === null}
               onClick={handleNextQuestion}
-              className="px-6 py-3 bg-emerald-600 text-white rounded-lg font-semibold hover:bg-emerald-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-6 py-3 bg-emerald-600 text-white rounded"
             >
               {currentQuestion === quiz.questions.length - 1
-                ? "Submit Quiz"
-                : "Next Question"}
+                ? "Submit"
+                : "Next"}
             </button>
+
           </div>
+
         </div>
 
-        {/* Info Card */}
-        <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <p className="text-sm text-blue-800">
-            <strong>Note:</strong> This quiz is based on today's lecture
-            material uploaded by your teacher. Your performance will help AI
-            identify topics where you need additional support.
-          </p>
-        </div>
       </main>
     </div>
   );

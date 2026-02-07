@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "EduGrow - Student Performance Dashboard",
+  title: "Bodha Setu - Student Performance Dashboard",
   description:
     "Track student performance, identify learning gaps, and support mental wellness",
 };
