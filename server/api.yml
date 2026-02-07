@@ -1527,3 +1527,86 @@ paths:
                         type: integer
                       latestMetrics:
                         $ref: "#/components/schemas/ExtractedMetrics"
+
+  /generate-quiz:
+    post:
+      summary: Upload a lecture file and generate a quiz with Gemini AI
+      tags: [Quiz Generation]
+      security:
+        - BearerAuth: []
+      description: |
+        Role: teacher only.
+        Upload a PPT/PDF/DOCX/TXT/image file. Gemini reads the content and
+        generates MCQ questions. The file is NOT stored — only the resulting
+        quiz is saved. A Lecture record is created automatically.
+        The quiz is available to all students enrolled in the subject.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file, subjectId, title, topicsCovered]
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: "Lecture file — PPT, PPTX, PDF, DOC, DOCX, TXT, PNG, JPG (max 50 MB)"
+                subjectId:
+                  type: string
+                  description: Subject ObjectId
+                title:
+                  type: string
+                  description: Lecture / quiz title
+                topicsCovered:
+                  type: string
+                  description: 'JSON array of topic strings, e.g. ["Recursion","Trees"]'
+                numQuestions:
+                  type: integer
+                  description: Number of questions to generate (default 10)
+                duration:
+                  type: integer
+                  description: Quiz duration in minutes (default 20)
+      responses:
+        "201":
+          description: Quiz generated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Quiz generated and assigned to all students of this subject
+                  quiz:
+                    type: object
+                    properties:
+                      _id:
+                        type: string
+                      title:
+                        type: string
+                      questionsCount:
+                        type: integer
+                      duration:
+                        type: integer
+                      startsAt:
+                        type: string
+                        format: date-time
+                      endsAt:
+                        type: string
+                        format: date-time
+                      subjectId:
+                        type: string
+                  lecture:
+                    type: object
+                    properties:
+                      _id:
+                        type: string
+                      title:
+                        type: string
+        "400":
+          description: Missing file, subjectId, title, or topicsCovered
+        "404":
+          description: Subject not found or teacher does not own it
+        "500":
+          description: Gemini API failure or malformed AI response
