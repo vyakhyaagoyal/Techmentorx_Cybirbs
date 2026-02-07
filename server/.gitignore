@@ -1,31 +1,20 @@
-# Dependencies
+# dependencies
 node_modules/
 /.pnp
 .pnp.js
 .pnp.*
-.yarn/*
-!.yarn/patches
-!.yarn/plugins
-!.yarn/releases
-!.yarn/versions
 
-# Testing
+# testing
 coverage/
 *.lcov
 .nyc_output/
 
-# Build output
+# production build
 dist/
 build/
 out/
-tmp/
-temp/
 
-# Next.js specific (client)
-/.next/
-next-env.d.ts
-
-# Logs
+# logs
 logs/
 *.log
 npm-debug.log*
@@ -34,43 +23,36 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-# Runtime data
+# runtime data
 pids/
 *.pid
 *.seed
 *.pid.lock
 
-# Environment variables
+# environment variables
 .env
-.env*
+.env.test
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
 .env*.local
 
-# Cache
-.cache/
-.eslintcache
-.npm
-.node_repl_history
-
-# TypeScript
+# typescript
 *.tsbuildinfo
 tsconfig.tsbuildinfo
 
-# Vercel
-.vercel
+# cache
+.cache/
+.eslintcache
+.node_repl_history
 
-# Turbo
-.turbo
-
-# Temp files
+# temp files
+tmp/
+temp/
 *.tmp
-.DS_Store
-*.pem
 
-# IDE/Editor
+# IDE
 .vscode/
 .idea/
 *.swp
@@ -83,6 +65,9 @@ tsconfig.tsbuildinfo
 # OS
 .DS_Store
 Thumbs.db
+
+# Optional npm cache directory
+.npm
 
 # Optional REPL history
 .node_repl_history
