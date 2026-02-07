@@ -196,3 +196,12 @@ cd server
 npm run dev
 cd student_engagement_monitor
 python api_server/main.py
+```
+
+---
+
+## 📚 Dataset Acknowledgment
+
+This project uses the **DAiSEE (Dataset for Affective States in E-learning Environments)** for training and evaluating the student engagement monitoring system.
+
+
