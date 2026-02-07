@@ -25,23 +25,32 @@ export default function Home() {
      Auth + User Check
   ============================ */
   useEffect(() => {
-    const user = localStorage.getItem("user");
+  const user = localStorage.getItem("user");
 
-    if (!user) {
-      router.replace("/login");
-      return;
-    }
+  if (!user) {
+    router.replace("/login");
+    return;
+  }
 
-    const parsed = JSON.parse(user);
+  const parsed = JSON.parse(user);
 
-    if (parsed.role !== "student") {
-      router.replace("/login");
-      return;
-    }
-
+  // ✅ Student → stay here
+  if (parsed.role === "student") {
     setUserName(parsed.name);
     setAuthorized(true);
-  }, [router]);
+    return;
+  }
+
+  // ✅ Teacher → go to teacher dashboard
+  if (parsed.role === "teacher") {
+    router.replace("/teacher-dashboard");
+    return;
+  }
+
+  // ❌ Others → login
+  router.replace("/login");
+
+}, [router]);
 
   /* ============================
      Render Chart
