@@ -1,14 +1,7 @@
 /**
- * Mock Python Server Client
+ * Python Server Client
  *
- * Communicates with the Python AI/ML server for:
- * - Quiz generation from PPTs (LLM)
- * - OpenCV engagement analysis
- * - Mental health chatbot analysis
- * - AI topic teaching content
- *
- * See PYTHON_SERVER_API.md for endpoint documentation.
- * Replace PYTHON_SERVER_URL in .env when the Python server is ready.
+ * Communicates with the Python FastAPI server for engagement analysis
  */
 
 const PYTHON_URL = process.env.PYTHON_SERVER_URL || "http://localhost:8000";
@@ -70,9 +63,9 @@ export async function processEngagement(lectureId: string, videoUrl: string) {
     }[];
     overallAvgEngagement: number;
     lowEngagementTopics: string[];
-  }>("/api/engagement/process", {
+  }>("/api/process-video", {
     method: "POST",
-    body: JSON.stringify({ lectureId, videoUrl }),
+    body: JSON.stringify({ lecture_id: lectureId }),
   });
 }
 

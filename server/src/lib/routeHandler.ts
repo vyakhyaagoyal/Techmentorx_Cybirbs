@@ -22,7 +22,10 @@ export async function routesHandler(): Promise<Router> {
       // Add more filename options if necessary
       if (!/\.(ts|js|cjs|mjs)$/i.test(dir.name)) continue;
 
-      const module = await import(path.join(parentDir, dir.name));
+      const modulePath = path.join(parentDir, dir.name);
+      // Convert to file:// URL for Windows ESM compatibility
+      const moduleUrl = new URL(`file:///${modulePath.replace(/\\/g, '/')}`).href;
+      const module = await import(moduleUrl);
       const routerObj: RouterObject = module.default;
 
       for (const obj of routerObj.functions) {
