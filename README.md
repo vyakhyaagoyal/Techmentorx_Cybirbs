@@ -106,6 +106,7 @@ Student dashboard includes:
 
 ---
 ## File Structure
+
 Techmentorx_Cybirbs/
 ├── .gitignore
 ├── README.md
@@ -261,7 +262,7 @@ Techmentorx_Cybirbs/
 │   │   └── utils.py
 │   └── yolov8n.pt
 └── teacher.html
-```
+
 ## 🧠 Tech Stack
 
 ### Frontend
