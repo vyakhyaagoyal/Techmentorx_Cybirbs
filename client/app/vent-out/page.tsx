@@ -1,409 +1,419 @@
 "use client";
-import React from "react";
-import { useState } from "react";
-import MemoryGame from './MemoryGame'
-import FocusGame from './FocusGame'
-import MindfulnessGame from './MindfulnessGame'
-import CreativeGame from './CreativeGame'
+
+import React, { useState, useRef, useEffect } from "react";
+import MemoryGame from "./MemoryGame";
+import FocusGame from "./FocusGame";
+import MindfulnessGame from "./MindfulnessGame";
+import CreativeGame from "./CreativeGame";
 import jsPDF from "jspdf";
 
+/* ================= TYPES ================= */
+
+interface Message {
+  role: "user" | "assistant";
+  content: string;
+}
+
+interface Metrics {
+  anxietyLevel: number;
+  moodScore: number;
+  stressLevel: number;
+  sleepQuality: string;
+  motivationLevel: number;
+  socialEngagement: number;
+}
+
+/* ================= COMPONENT ================= */
+
 export default function VentOut() {
-  const [messages, setMessages] = useState<
-    Array<{ role: string; content: string }>
-  >([
+  /* ---------------- State ---------------- */
+
+  const [messages, setMessages] = useState<Message[]>([
     {
       role: "assistant",
       content:
         "Hello! I'm here to listen and support you. How are you feeling today?",
     },
   ]);
+
   const [input, setInput] = useState("");
-  const [moodScore] = useState(7);
+  const [loading, setLoading] = useState(false);
+
+  const [metrics, setMetrics] = useState<Metrics>({
+    anxietyLevel: 30,
+    moodScore: 7,
+    stressLevel: 40,
+    sleepQuality: "good",
+    motivationLevel: 75,
+    socialEngagement: 60,
+  });
+
+  const [crisisAlert, setCrisisAlert] = useState<string | null>(null);
+
   const [activeGame, setActiveGame] = useState<string | null>(null);
 
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  /* ================= AUTO SCROLL ================= */
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  /* ================= CHAT LOGIC ================= */
 
   const handleSendMessage = () => {
-    if (input.trim()) {
-      setMessages([...messages, { role: "user", content: input }]);
-      // Simulate AI response
-      setTimeout(() => {
-        setMessages((prev) => [
-          ...prev,
-          {
-            role: "assistant",
-            content:
-              "I understand. It's completely normal to feel this way. Would you like to talk more about what's on your mind?",
-          },
-        ]);
-      }, 1000);
-      setInput("");
+    if (!input.trim() || loading) return;
+
+    const userText = input.toLowerCase();
+
+    setMessages((prev) => [...prev, { role: "user", content: input }]);
+    setInput("");
+    setLoading(true);
+
+    let reply = "I'm here for you. Tell me more 💛";
+    let updated = { ...metrics };
+
+    /* Positive */
+
+    if (
+      userText.includes("happy") ||
+      userText.includes("good") ||
+      userText.includes("great") ||
+      userText.includes("fine") ||
+      userText.includes("better")
+    ) {
+      reply = "That’s wonderful to hear! Keep going 🌟";
+
+      updated.moodScore = Math.min(updated.moodScore + 1, 10);
+      updated.stressLevel = Math.max(updated.stressLevel - 5, 0);
+      updated.anxietyLevel = Math.max(updated.anxietyLevel - 3, 0);
     }
+
+    /* Negative */
+
+    else if (
+      userText.includes("sad") ||
+      userText.includes("tired") ||
+      userText.includes("stress") ||
+      userText.includes("depressed") ||
+      userText.includes("pressure")
+    ) {
+      reply =
+        "I'm really sorry you're feeling this way. You're not alone 💛 Want to talk about it?";
+
+      updated.moodScore = Math.max(updated.moodScore - 1, 1);
+      updated.stressLevel = Math.min(updated.stressLevel + 6, 100);
+      updated.anxietyLevel = Math.min(updated.anxietyLevel + 5, 100);
+    }
+
+    /* Crisis */
+
+    if (userText.includes("suicide") || userText.includes("dying")) {
+      setCrisisAlert(
+        "⚠️ You matter. Please reach out to a trusted person or mental health professional immediately."
+      );
+    } else {
+      setCrisisAlert(null);
+    }
+
+    /* Response */
+
+    setTimeout(() => {
+      setMessages((prev) => [
+        ...prev,
+        { role: "assistant", content: reply },
+      ]);
+
+      setMetrics(updated);
+      setLoading(false);
+    }, 600);
   };
 
+  /* ================= PDF ================= */
+
   const downloadReport = () => {
-  const doc = new jsPDF();
+    const doc = new jsPDF();
 
-  doc.setFont("helvetica");
+    doc.setFont("helvetica");
 
-  // Title
-  doc.setFontSize(20);
-  doc.text("Monthly Wellness Report", 20, 20);
+    doc.setFontSize(20);
+    doc.text("Monthly Wellness Report", 20, 20);
 
-  // Student Info
-  doc.setFontSize(12);
-  doc.text("Student Name: Aarav Sharma", 20, 35);
-  doc.text("Month: February 2026", 20, 45);
+    doc.setFontSize(12);
+    doc.text(`Mood Score: ${metrics.moodScore}/10`, 20, 40);
+    doc.text(`Stress Level: ${metrics.stressLevel}%`, 20, 50);
+    doc.text(`Anxiety Level: ${metrics.anxietyLevel}%`, 20, 60);
+    doc.text(`Sleep Quality: ${metrics.sleepQuality}`, 20, 70);
 
-  // Line
-  doc.line(20, 50, 190, 50);
+    doc.line(20, 80, 190, 80);
 
-  // Highlights
-  doc.setFontSize(14);
-  doc.text("Positive Highlights", 20, 65);
+    doc.setFontSize(11);
+    doc.text("Generated by Bodha Setu Wellness System", 20, 95);
 
-  doc.setFontSize(11);
-  doc.text("✓ Consistent mood improvement", 25, 75);
-  doc.text("✓ Decreased anxiety levels", 25, 85);
-  doc.text("✓ Regular wellness activities", 25, 95);
-  doc.text("✓ Good sleep pattern", 25, 105);
+    doc.save("Wellness_Report.pdf");
+  };
 
-  // Areas to Improve
-  doc.setFontSize(14);
-  doc.text("Areas to Focus On", 20, 125);
-
-  doc.setFontSize(11);
-  doc.text("• More social interaction", 25, 135);
-  doc.text("• Relaxation before exams", 25, 145);
-  doc.text("• Regular exercise", 25, 155);
-  doc.text("• Time for hobbies", 25, 165);
-
-  // Footer
-  doc.setFontSize(10);
-  doc.text(
-    "Generated by Bodha Setu - Mental Wellness System",
-    20,
-    190
-  );
-
-  // Download
-  doc.save("Monthly_Wellness_Report.pdf");
-};
+  /* ================= UI ================= */
 
   return (
-    <div className="min-h-screen w-full">
-      <main className="w-full max-w-7xl mx-auto py-6 sm:py-8 lg:py-10 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen w-full bg-gray-50">
+      <main className="w-full max-w-7xl mx-auto py-10 px-4 space-y-10">
+
         {/* Header */}
-        <div className="mb-6 sm:mb-8 lg:mb-10">
-          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900">
+
+        <div>
+          <h1 className="text-4xl font-bold text-gray-900">
             🌿 Wellness Corner
           </h1>
-          <p className="mt-2 sm:mt-3 text-sm sm:text-base text-gray-600">
-            Your personal space for mental health and wellness
+          <p className="mt-2 text-gray-600">
+            Your personal mental wellness space
           </p>
         </div>
 
-        {/* Mental Health Status */}
-        <div className="bg-linear-to-br from-emerald-600 to-teal-600 rounded-xl shadow-lg p-6 sm:p-8 lg:p-10 mb-6 sm:mb-8 lg:mb-10 text-white">
-          <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold mb-6 sm:mb-8">
+        {/* Dashboard */}
+
+        <div className="bg-linear-to-br from-emerald-600 to-teal-600 rounded-xl shadow-lg p-8 text-white">
+
+          <h2 className="text-3xl font-bold mb-6">
             🌱 Your Wellness Dashboard
           </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
-            <div className="p-4 sm:p-5 bg-white/10 rounded-lg">
-              <div className="text-xs sm:text-sm opacity-90 mb-2">
-                Current Mood Score
-              </div>
-              <div className="text-3xl sm:text-4xl lg:text-5xl font-bold">
-                {moodScore}/10
-              </div>
-              <div className="text-xs sm:text-sm mt-2 sm:mt-3 opacity-90">
-                Based on this week's interactions
-              </div>
-            </div>
-            <div className="p-4 sm:p-5 bg-white/10 rounded-lg">
-              <div className="text-xs sm:text-sm opacity-90 mb-2">
-                Stress Level
-              </div>
-              <div className="text-3xl sm:text-4xl lg:text-5xl font-bold">
-                Moderate
-              </div>
-              <div className="text-xs sm:text-sm mt-2 sm:mt-3 opacity-90 flex items-center flex-wrap">
-                <span className="text-green-300">↓ Decreased</span>
-                <span className="ml-2">from last week</span>
-              </div>
-            </div>
-            <div className="p-4 sm:p-5 bg-white/10 rounded-lg sm:col-span-2 lg:col-span-1">
-              <div className="text-xs sm:text-sm opacity-90 mb-2">
-                Activities Completed
-              </div>
-              <div className="text-3xl sm:text-4xl lg:text-5xl font-bold">
-                12
-              </div>
-              <div className="text-xs sm:text-sm mt-2 sm:mt-3 opacity-90">
-                This month
-              </div>
-            </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+
+            <Stat title="Mood Score" value={`${metrics.moodScore}/10`} />
+
+            <Stat title="Stress Level" value={`${metrics.stressLevel}%`} />
+
+            <Stat title="Sleep Quality" value={metrics.sleepQuality} />
+
           </div>
         </div>
 
-        {/* Main Features Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 lg:gap-10 mb-6 sm:mb-8 lg:mb-10">
-          {/* AI Therapist Chatbot */}
-          <div className="bg-white rounded-xl shadow-md p-5 sm:p-6 lg:p-8">
-            <div className="flex items-center justify-between mb-5 sm:mb-6">
-              <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">
-                💬 Wellness Chatbot
-              </h2>
-              <span className="text-xs sm:text-sm bg-green-100 text-green-800 px-3 py-1.5 rounded-full font-medium">
-                Active
-              </span>
-            </div>
-            <div className="border border-gray-200 rounded-xl p-4 sm:p-5 h-72 sm:h-80 lg:h-96 overflow-y-auto mb-5 sm:mb-6 bg-gray-50">
-              {messages.map((msg, index) => (
+        {/* Main Section */}
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+
+          {/* Chat */}
+
+          <div className="bg-white rounded-xl shadow-md p-6">
+
+            <h2 className="text-2xl font-bold mb-4">
+              💬 Wellness Chatbot
+            </h2>
+
+            {crisisAlert && (
+              <div className="mb-4 p-4 bg-red-50 border-2 border-red-400 rounded-lg">
+                <p className="text-red-800 font-semibold">
+                  {crisisAlert}
+                </p>
+              </div>
+            )}
+
+            <div className="border rounded-lg p-4 h-80 overflow-y-auto bg-gray-50 mb-4">
+
+              {messages.map((msg, i) => (
                 <div
-                  key={index}
-                  className={`mb-4 ${msg.role === "user" ? "text-right" : "text-left"}`}
+                  key={i}
+                  className={`mb-3 flex ${
+                    msg.role === "user"
+                      ? "justify-end"
+                      : "justify-start"
+                  }`}
                 >
                   <div
-                    className={`inline-block px-4 sm:px-5 py-2.5 sm:py-3 rounded-xl max-w-[85%] sm:max-w-[80%] text-sm sm:text-base ${
+                    className={`px-4 py-2 rounded-lg max-w-xs text-sm ${
                       msg.role === "user"
-                        ? "bg-emerald-600 text-white shadow-sm"
-                        : "bg-gray-200 text-gray-900 shadow-sm"
+                        ? "bg-emerald-600 text-white"
+                        : "bg-gray-200"
                     }`}
                   >
                     {msg.content}
                   </div>
                 </div>
               ))}
+
+              {loading && (
+                <p className="text-sm text-gray-400">Typing...</p>
+              )}
+
+              <div ref={messagesEndRef} />
             </div>
-            <div className="flex gap-2 sm:gap-3">
+
+            <div className="flex gap-2">
+
               <input
-                type="text"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                onKeyPress={(e) => e.key === "Enter" && handleSendMessage()}
-                placeholder="Share what's on your mind..."
-                className="flex-1 px-4 sm:px-5 py-2.5 sm:py-3 text-sm sm:text-base border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                onKeyDown={(e) =>
+                  e.key === "Enter" && handleSendMessage()
+                }
+                placeholder="Share your thoughts..."
+                className="flex-1 px-4 py-2 border rounded-lg"
               />
+
               <button
                 onClick={handleSendMessage}
-                className="px-5 sm:px-7 py-2.5 sm:py-3 text-sm sm:text-base bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 transition-colors font-medium shadow-sm"
+                className="px-5 py-2 bg-emerald-600 text-white rounded-lg"
               >
                 Send
               </button>
+
             </div>
+
           </div>
 
-          {/* Behavioral Analysis */}
-          <div className="bg-white rounded-xl shadow-md p-5 sm:p-6 lg:p-8">
-            <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 mb-5 sm:mb-6">
+          {/* Analysis */}
+
+          <div className="bg-white rounded-xl shadow-md p-6">
+
+            <h2 className="text-2xl font-bold mb-4">
               📊 Behavioral Analysis
             </h2>
-            <div className="space-y-5 sm:space-y-6">
-              <div>
-                <div className="flex justify-between items-center mb-2.5">
-                  <span className="text-sm sm:text-base font-medium text-gray-700">
-                    Anxiety Level
-                  </span>
-                  <span className="text-sm sm:text-base font-semibold text-gray-900">
-                    Low
-                  </span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-2.5 sm:h-3">
-                  <div
-                    className="bg-green-500 h-2.5 sm:h-3 rounded-full transition-all duration-500"
-                    style={{ width: "30%" }}
-                  ></div>
-                </div>
-              </div>
-              <div>
-                <div className="flex justify-between items-center mb-2.5">
-                  <span className="text-sm sm:text-base font-medium text-gray-700">
-                    Motivation
-                  </span>
-                  <span className="text-sm sm:text-base font-semibold text-gray-900">
-                    High
-                  </span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-2.5 sm:h-3">
-                  <div
-                    className="bg-blue-500 h-2.5 sm:h-3 rounded-full transition-all duration-500"
-                    style={{ width: "75%" }}
-                  ></div>
-                </div>
-              </div>
-              <div>
-                <div className="flex justify-between items-center mb-2.5">
-                  <span className="text-sm sm:text-base font-medium text-gray-700">
-                    Social Engagement
-                  </span>
-                  <span className="text-sm sm:text-base font-semibold text-gray-900">
-                    Moderate
-                  </span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-2.5 sm:h-3">
-                  <div
-                    className="bg-yellow-500 h-2.5 sm:h-3 rounded-full transition-all duration-500"
-                    style={{ width: "50%" }}
-                  ></div>
-                </div>
-              </div>
-              <div>
-                <div className="flex justify-between items-center mb-2.5">
-                  <span className="text-sm sm:text-base font-medium text-gray-700">
-                    Sleep Quality
-                  </span>
-                  <span className="text-sm sm:text-base font-semibold text-gray-900">
-                    Good
-                  </span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-2.5 sm:h-3">
-                  <div
-                    className="bg-purple-500 h-2.5 sm:h-3 rounded-full transition-all duration-500"
-                    style={{ width: "65%" }}
-                  ></div>
-                </div>
-              </div>
-            </div>
-            <div className="mt-6 sm:mt-8 p-4 sm:p-5 bg-green-50 border border-green-200 rounded-xl">
-              <h3 className="text-sm sm:text-base font-semibold text-green-900 mb-2.5">
-                🌿 Insights
-              </h3>
-              <p className="text-xs sm:text-sm text-green-800 leading-relaxed">
-                Your mood has improved over the past week. Continue engaging
-                with wellness activities and consider taking breaks between
-                study sessions.
-              </p>
-            </div>
+
+            <Progress
+              label="Anxiety"
+              value={metrics.anxietyLevel}
+              color="bg-green-500"
+            />
+
+            <Progress
+              label="Motivation"
+              value={metrics.motivationLevel}
+              color="bg-blue-500"
+            />
+
+            <Progress
+              label="Social Engagement"
+              value={metrics.socialEngagement}
+              color="bg-yellow-500"
+            />
+
+            <Progress
+              label="Sleep"
+              value={65}
+              color="bg-purple-500"
+            />
+
+            <button
+              onClick={downloadReport}
+              className="mt-6 w-full py-3 bg-blue-600 text-white rounded-xl"
+            >
+              📥 Download Report
+            </button>
+
           </div>
+
         </div>
 
-        {/* Game Modal */}
-        {activeGame && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-            <div className="bg-white w-full max-w-2xl rounded-xl p-6 relative shadow-xl">
+        {/* Games */}
 
-              {/* Close Button */}
+        {activeGame && (
+          <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50">
+
+            <div className="bg-white max-w-2xl w-full p-6 rounded-xl relative">
+
               <button
                 onClick={() => setActiveGame(null)}
-                className="absolute top-3 right-3 text-gray-500 hover:text-black text-xl"
+                className="absolute top-3 right-3 text-xl"
               >
                 ✖
               </button>
 
-              {/* Memory Match Game */}
               {activeGame === "memory" && <MemoryGame />}
-
-              {/* Focus Game */}
               {activeGame === "focus" && <FocusGame />}
-
-              {/* Mindfulness */}
               {activeGame === "mindfulness" && <MindfulnessGame />}
-
-              {/* Creative */}
               {activeGame === "creative" && <CreativeGame />}
 
             </div>
+
           </div>
         )}
 
-        {/* Brain Games & Activities */}
-        <div className="bg-white rounded-xl shadow-md p-5 sm:p-6 lg:p-8 mb-6 sm:mb-8 lg:mb-10">
-          <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 mb-6 sm:mb-8">
-            🎮 Brain Games & Activities
+        {/* Games Grid */}
+
+        <div className="bg-white p-6 rounded-xl shadow-md">
+
+          <h2 className="text-2xl font-bold mb-6">
+            🎮 Brain Games
           </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 lg:gap-6">
-            <div
-  onClick={() => setActiveGame("memory")}
-  className="border-2 border-gray-200 rounded-xl p-5 sm:p-6 hover:shadow-lg hover:border-emerald-300 transition-all cursor-pointer"
->
 
-              <div className="text-4xl sm:text-5xl mb-3">🧩</div>
-              <h3 className="font-semibold text-gray-900 mb-2 text-base sm:text-lg">
-                Chemistry Memory Match
-              </h3>
-              <p className="text-xs sm:text-sm text-gray-600">
-                Improve cognitive function
-              </p>
-            </div>
-            <div
-  onClick={() => setActiveGame("focus")}
-  className="border-2 border-gray-200 rounded-xl p-5 sm:p-6 hover:shadow-lg hover:border-emerald-300 transition-all cursor-pointer"
->
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
 
-              <div className="text-4xl sm:text-5xl mb-3">🎯</div>
-              <h3 className="font-semibold text-gray-900 mb-2 text-base sm:text-lg">
-                Focus Challenge
-              </h3>
-              <p className="text-xs sm:text-sm text-gray-600">
-                Enhance concentration
-              </p>
-            </div>
-            <div
-  onClick={() => setActiveGame("mindfulness")}
-  className="border-2 border-gray-200 rounded-xl p-5 sm:p-6 hover:shadow-lg hover:border-emerald-300 transition-all cursor-pointer"
->
+            <Game
+              icon="🧩"
+              title="Memory"
+              onClick={() => setActiveGame("memory")}
+            />
 
-              <div className="text-4xl sm:text-5xl mb-3">🧘</div>
-              <h3 className="font-semibold text-gray-900 mb-2 text-base sm:text-lg">
-                Mindfulness
-              </h3>
-              <p className="text-xs sm:text-sm text-gray-600">Reduce stress</p>
-            </div>
-            <div
-  onClick={() => setActiveGame("creative")}
-  className="border-2 border-gray-200 rounded-xl p-5 sm:p-6 hover:shadow-lg hover:border-emerald-300 transition-all cursor-pointer"
->
+            <Game
+              icon="🎯"
+              title="Focus"
+              onClick={() => setActiveGame("focus")}
+            />
 
-              <div className="text-4xl sm:text-5xl mb-3">🎨</div>
-              <h3 className="font-semibold text-gray-900 mb-2 text-base sm:text-lg">
-                Grounding Exercise
-              </h3>
-              <p className="text-xs sm:text-sm text-gray-600">
-                Express yourself
-              </p>
-            </div>
+            <Game
+              icon="🧘"
+              title="Mindfulness"
+              onClick={() => setActiveGame("mindfulness")}
+            />
+
+            <Game
+              icon="🎨"
+              title="Creative"
+              onClick={() => setActiveGame("creative")}
+            />
+
           </div>
+
         </div>
 
-        {/* Monthly Report Preview */}
-        <div className="bg-white rounded-xl shadow-md p-5 sm:p-6 lg:p-8">
-          <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 mb-6 sm:mb-8">
-            📈 Monthly Wellness Report
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 lg:gap-10">
-            <div className="border-l-4 border-green-500 pl-4 sm:pl-6">
-              <h3 className="font-semibold text-gray-900 mb-3 sm:mb-4 text-base sm:text-lg">
-                Positive Highlights
-              </h3>
-              <ul className="space-y-2.5 sm:space-y-3 text-sm sm:text-base text-gray-600">
-                <li>✓ Consistent mood improvement over 3 weeks</li>
-                <li>✓ Decreased anxiety levels</li>
-                <li>✓ Regular engagement with wellness activities</li>
-                <li>✓ Good sleep pattern maintained</li>
-              </ul>
-            </div>
-            <div className="border-l-4 border-yellow-500 pl-4 sm:pl-6">
-              <h3 className="font-semibold text-gray-900 mb-3 sm:mb-4 text-base sm:text-lg">
-                Areas to Focus On
-              </h3>
-              <ul className="space-y-2.5 sm:space-y-3 text-sm sm:text-base text-gray-600">
-                <li>• Consider more social interactions</li>
-                <li>• Try relaxation exercises before exams</li>
-                <li>• Maintain regular exercise routine</li>
-                <li>• Set aside time for hobbies</li>
-              </ul>
-            </div>
-          </div>
-          <button
-  onClick={downloadReport}
-  className="mt-6 sm:mt-8 w-full py-3.5 sm:py-4 bg-linear-to-r from-emerald-600 to-teal-600 text-white rounded-xl font-semibold hover:shadow-xl transition-all text-sm sm:text-base"
->
-  Download Full Monthly Report
-</button>
-        </div>
       </main>
     </div>
   );
 }
 
+/* ================= UI ================= */
 
+function Stat({ title, value }: any) {
+  return (
+    <div className="bg-white/10 p-5 rounded-lg">
+      <p className="text-sm opacity-90">{title}</p>
+      <p className="text-4xl font-bold mt-1">{value}</p>
+    </div>
+  );
+}
+
+function Progress({ label, value, color }: any) {
+  return (
+    <div className="mb-4">
+
+      <div className="flex justify-between mb-1 text-sm font-medium">
+        <span>{label}</span>
+        <span>{value}%</span>
+      </div>
+
+      <div className="w-full bg-gray-200 h-3 rounded-full">
+
+        <div
+          className={`${color} h-3 rounded-full`}
+          style={{ width: `${value}%` }}
+        ></div>
+
+      </div>
+
+    </div>
+  );
+}
+
+function Game({ icon, title, onClick }: any) {
+  return (
+    <div
+      onClick={onClick}
+      className="border rounded-xl p-5 text-center hover:shadow-lg cursor-pointer"
+    >
+      <div className="text-4xl mb-2">{icon}</div>
+      <h3 className="font-semibold">{title}</h3>
+    </div>
+  );
+}
