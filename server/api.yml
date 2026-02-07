@@ -1,0 +1,1188 @@
+openapi: "3.0.3"
+
+info:
+  title: TechMentorX API
+  description: Backend API for TechMentorX student performance tracking, engagement analysis, and mental health support platform.
+  version: "1.0.0"
+
+servers:
+  - url: http://localhost:5000
+    description: Local development
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    UserProfile:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        email:
+          type: string
+        role:
+          type: string
+          enum: [student, teacher]
+        department:
+          type: string
+
+    SubjectRef:
+      type: object
+      properties:
+        _id:
+          type: string
+        name:
+          type: string
+        code:
+          type: string
+
+    QuizQuestion:
+      type: object
+      properties:
+        index:
+          type: integer
+        question:
+          type: string
+        options:
+          type: array
+          items:
+            type: string
+        topic:
+          type: string
+
+    QuizAnswer:
+      type: object
+      properties:
+        questionIndex:
+          type: integer
+        selectedAnswer:
+          type: integer
+      required: [questionIndex, selectedAnswer]
+
+    DataPoint:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date-time
+        score:
+          type: number
+
+    TopicSegment:
+      type: object
+      properties:
+        topic:
+          type: string
+        startTime:
+          type: number
+        endTime:
+          type: number
+        avgEngagement:
+          type: number
+
+    StudentEngagement:
+      type: object
+      properties:
+        studentId:
+          type: string
+        attentionScore:
+          type: number
+        engagementLevel:
+          type: string
+          enum: [high, medium, low]
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            message:
+              type: string
+            code:
+              type: string
+            status:
+              type: integer
+
+paths:
+  /:
+    get:
+      summary: Health check
+      tags: [General]
+      responses:
+        "200":
+          description: Server is running
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+
+  /auth/register:
+    post:
+      summary: Register a new student or teacher
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, email, password, role, department]
+              properties:
+                name:
+                  type: string
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  minLength: 6
+                role:
+                  type: string
+                  enum: [student, teacher]
+                department:
+                  type: string
+                enrollmentId:
+                  type: string
+                  description: Required for students
+                semester:
+                  type: integer
+                  description: Required for students
+                employeeId:
+                  type: string
+                  description: Required for teachers
+      responses:
+        "201":
+          description: Registration successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  token:
+                    type: string
+                  user:
+                    $ref: "#/components/schemas/UserProfile"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /auth/login:
+    post:
+      summary: Login with email and password
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+      responses:
+        "200":
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  token:
+                    type: string
+                  user:
+                    $ref: "#/components/schemas/UserProfile"
+        "400":
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /me:
+    get:
+      summary: Get current user profile
+      tags: [User]
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: User profile
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  email:
+                    type: string
+                  role:
+                    type: string
+                  name:
+                    type: string
+                  department:
+                    type: string
+                  enrollmentId:
+                    type: string
+                  semester:
+                    type: integer
+                  employeeId:
+                    type: string
+                  subjects:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/SubjectRef"
+                  teachingSubjects:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/SubjectRef"
+
+  /dashboard:
+    get:
+      summary: Student personal dashboard
+      tags: [Student Dashboard]
+      security:
+        - BearerAuth: []
+      description: "Role: student only"
+      responses:
+        "200":
+          description: Dashboard overview
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  student:
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                      email:
+                        type: string
+                      department:
+                        type: string
+                      semester:
+                        type: integer
+                      enrollmentId:
+                        type: string
+                  performance:
+                    type: object
+                    properties:
+                      overallAverage:
+                        type: number
+                      totalQuizzesTaken:
+                        type: integer
+                      subjectPerformance:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            subjectId:
+                              type: string
+                            subjectName:
+                              type: string
+                            averageScore:
+                              type: number
+                            quizzesTaken:
+                              type: integer
+                  pendingStudyTopics:
+                    type: array
+                    items:
+                      type: object
+
+  /dashboard/standing:
+    get:
+      summary: Student percentile standing (no actual rank exposed)
+      tags: [Student Dashboard]
+      security:
+        - BearerAuth: []
+      description: "Role: student only. Shows how many percent of students are ahead without revealing position."
+      responses:
+        "200":
+          description: Standing data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  department:
+                    type: string
+                  overall:
+                    type: object
+                    properties:
+                      percentileBehind:
+                        type: integer
+                      message:
+                        type: string
+                        example: "You are behind 25% of students overall"
+                  subjectWise:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        subjectId:
+                          type: string
+                        subjectName:
+                          type: string
+                        subjectCode:
+                          type: string
+                        percentileBehind:
+                          type: integer
+                        message:
+                          type: string
+
+  /dashboard/graph:
+    get:
+      summary: Performance graph data over time
+      tags: [Student Dashboard]
+      security:
+        - BearerAuth: []
+      description: "Role: student only"
+      responses:
+        "200":
+          description: Graph data points per subject
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  subjects:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        subjectId:
+                          type: string
+                        subjectName:
+                          type: string
+                        dataPoints:
+                          type: array
+                          items:
+                            $ref: "#/components/schemas/DataPoint"
+
+  /quiz/pending:
+    get:
+      summary: Get active quizzes student hasn't taken
+      tags: [Quiz]
+      security:
+        - BearerAuth: []
+      description: "Role: student only"
+      responses:
+        "200":
+          description: List of pending quizzes
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  quizzes:
+                    type: array
+                    items:
+                      type: object
+
+  /quiz/{quizId}:
+    get:
+      summary: Get quiz questions (answers stripped)
+      tags: [Quiz]
+      security:
+        - BearerAuth: []
+      description: "Role: student only"
+      parameters:
+        - name: quizId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Quiz with questions (no correct answers)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  quizId:
+                    type: string
+                  title:
+                    type: string
+                  subject:
+                    $ref: "#/components/schemas/SubjectRef"
+                  duration:
+                    type: integer
+                  endsAt:
+                    type: string
+                    format: date-time
+                  totalQuestions:
+                    type: integer
+                  questions:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/QuizQuestion"
+
+  /quiz/{quizId}/submit:
+    post:
+      summary: Submit quiz answers
+      tags: [Quiz]
+      security:
+        - BearerAuth: []
+      description: "Role: student only. Auto-creates study topics for weak areas."
+      parameters:
+        - name: quizId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [answers]
+              properties:
+                answers:
+                  type: array
+                  items:
+                    $ref: "#/components/schemas/QuizAnswer"
+      responses:
+        "201":
+          description: Quiz graded
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  result:
+                    type: object
+                    properties:
+                      score:
+                        type: number
+                      totalCorrect:
+                        type: integer
+                      totalQuestions:
+                        type: integer
+                      weakTopics:
+                        type: array
+                        items:
+                          type: string
+
+  /quiz/results/history:
+    get:
+      summary: Get quiz result history
+      tags: [Quiz]
+      security:
+        - BearerAuth: []
+      description: "Role: student only"
+      responses:
+        "200":
+          description: Quiz results list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  results:
+                    type: array
+                    items:
+                      type: object
+
+  /study/topics:
+    get:
+      summary: Get student's study topics ("To Study" section)
+      tags: [Study]
+      security:
+        - BearerAuth: []
+      description: "Role: student only"
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [pending, in-progress, completed]
+        - name: subject
+          in: query
+          schema:
+            type: string
+          description: Subject ObjectId filter
+      responses:
+        "200":
+          description: Study topics with summary
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  topics:
+                    type: array
+                    items:
+                      type: object
+                  summary:
+                    type: object
+                    properties:
+                      total:
+                        type: integer
+                      pending:
+                        type: integer
+                      inProgress:
+                        type: integer
+                      completed:
+                        type: integer
+                      overdue:
+                        type: integer
+
+  /study/topics/{topicId}:
+    patch:
+      summary: Update study topic status or progress
+      tags: [Study]
+      security:
+        - BearerAuth: []
+      description: "Role: student only"
+      parameters:
+        - name: topicId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum: [pending, in-progress, completed]
+                aiProgress:
+                  type: number
+                  minimum: 0
+                  maximum: 100
+      responses:
+        "200":
+          description: Topic updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  topic:
+                    type: object
+
+  /study/topics/{topicId}/learn:
+    post:
+      summary: Get AI teaching content for a weak topic
+      tags: [Study]
+      security:
+        - BearerAuth: []
+      description: "Role: student only. Uses the lecture PPT to generate teaching content."
+      parameters:
+        - name: topicId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: AI-generated teaching content
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  topic:
+                    type: string
+                  content:
+                    type: object
+                    properties:
+                      content:
+                        type: string
+                      exercises:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            question:
+                              type: string
+                            answer:
+                              type: string
+                      summary:
+                        type: string
+        "503":
+          description: AI service unavailable
+
+  /teacher/dashboard:
+    get:
+      summary: Teacher dashboard overview
+      tags: [Teacher]
+      security:
+        - BearerAuth: []
+      description: "Role: teacher only"
+      responses:
+        "200":
+          description: Teacher dashboard data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  subjects:
+                    type: array
+                    items:
+                      type: object
+                  recentLectures:
+                    type: array
+                    items:
+                      type: object
+                  totalSubjects:
+                    type: integer
+                  totalStudents:
+                    type: integer
+
+  /teacher/subjects:
+    post:
+      summary: Create a new subject
+      tags: [Teacher]
+      security:
+        - BearerAuth: []
+      description: "Role: teacher only"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, code, department, semester]
+              properties:
+                name:
+                  type: string
+                code:
+                  type: string
+                department:
+                  type: string
+                semester:
+                  type: integer
+      responses:
+        "201":
+          description: Subject created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  subject:
+                    type: object
+
+  /teacher/subjects/{subjectId}/students:
+    post:
+      summary: Enroll students in a subject
+      tags: [Teacher]
+      security:
+        - BearerAuth: []
+      description: "Role: teacher only"
+      parameters:
+        - name: subjectId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [studentIds]
+              properties:
+                studentIds:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        "200":
+          description: Students enrolled
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+    get:
+      summary: List enrolled students for a subject
+      tags: [Teacher]
+      security:
+        - BearerAuth: []
+      description: "Role: teacher only"
+      parameters:
+        - name: subjectId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Student list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  students:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                        email:
+                          type: string
+                        enrollmentId:
+                          type: string
+                        semester:
+                          type: integer
+                        department:
+                          type: string
+
+  /teacher/lectures:
+    post:
+      summary: Create a lecture (auto-generates quiz if PPT provided)
+      tags: [Teacher]
+      security:
+        - BearerAuth: []
+      description: "Role: teacher only. If pptUrl is provided, a 20-minute quiz is auto-generated via AI."
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [subjectId, title, topicsCovered]
+              properties:
+                subjectId:
+                  type: string
+                title:
+                  type: string
+                description:
+                  type: string
+                pptUrl:
+                  type: string
+                  description: URL/path to PPT — triggers quiz generation
+                topicsCovered:
+                  type: array
+                  items:
+                    type: string
+                date:
+                  type: string
+                  format: date-time
+                duration:
+                  type: integer
+                  description: Minutes (default 60)
+      responses:
+        "201":
+          description: Lecture created (with optional quiz)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  lecture:
+                    type: object
+                  quiz:
+                    type: object
+                    nullable: true
+
+  /teacher/subjects/{subjectId}/engagement:
+    get:
+      summary: View engagement analytics for a subject
+      tags: [Teacher]
+      security:
+        - BearerAuth: []
+      description: "Role: teacher only. Shows topics needing repetition based on OpenCV engagement analysis."
+      parameters:
+        - name: subjectId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Engagement analytics
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  subject:
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                      code:
+                        type: string
+                  engagementRecords:
+                    type: array
+                    items:
+                      type: object
+                  topicSummary:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        topic:
+                          type: string
+                        avgEngagement:
+                          type: number
+                        needsRepeat:
+                          type: boolean
+                  topicsNeedingRepeat:
+                    type: array
+                    items:
+                      type: object
+
+  /engagement/process:
+    post:
+      summary: Trigger OpenCV engagement analysis
+      tags: [Engagement]
+      security:
+        - BearerAuth: []
+      description: "Role: teacher only"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [lectureId]
+              properties:
+                lectureId:
+                  type: string
+                videoUrl:
+                  type: string
+      responses:
+        "201":
+          description: Engagement data processed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  data:
+                    type: object
+
+  /engagement/webhook:
+    post:
+      summary: Webhook — Python server pushes engagement data
+      tags: [Engagement]
+      description: No auth required (called by Python server)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [lectureId]
+              properties:
+                lectureId:
+                  type: string
+                topicSegments:
+                  type: array
+                  items:
+                    $ref: "#/components/schemas/TopicSegment"
+                studentEngagements:
+                  type: array
+                  items:
+                    $ref: "#/components/schemas/StudentEngagement"
+                overallAvgEngagement:
+                  type: number
+                lowEngagementTopics:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        "201":
+          description: Data received
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+
+  /engagement/lecture/{lectureId}:
+    get:
+      summary: Get engagement data for a lecture
+      tags: [Engagement]
+      security:
+        - BearerAuth: []
+      description: "Role: teacher only"
+      parameters:
+        - name: lectureId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Engagement data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+
+  /engagement/subject/{subjectId}/low-topics:
+    get:
+      summary: Get topics with low student engagement
+      tags: [Engagement]
+      security:
+        - BearerAuth: []
+      description: "Role: teacher only"
+      parameters:
+        - name: subjectId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Low engagement topics
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  subject:
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                      code:
+                        type: string
+                  lowEngagementTopics:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        topic:
+                          type: string
+                        avgEngagement:
+                          type: number
+                        lectureCount:
+                          type: integer
+                  recommendation:
+                    type: string
+
+  /mental-health/mood:
+    post:
+      summary: Log a daily mood entry
+      tags: [Mental Health]
+      security:
+        - BearerAuth: []
+      description: "Role: student only"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [mood, stressLevel, sleepHours]
+              properties:
+                mood:
+                  type: string
+                  enum: [great, good, okay, low, bad]
+                stressLevel:
+                  type: integer
+                  minimum: 1
+                  maximum: 10
+                sleepHours:
+                  type: number
+                  minimum: 0
+                  maximum: 24
+                notes:
+                  type: string
+      responses:
+        "201":
+          description: Mood logged
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  entry:
+                    type: object
+
+  /mental-health/chatbot:
+    post:
+      summary: Submit chatbot responses for AI mood analysis
+      tags: [Mental Health]
+      security:
+        - BearerAuth: []
+      description: "Role: student only"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [responses]
+              properties:
+                responses:
+                  type: object
+                  additionalProperties:
+                    type: string
+                  example:
+                    "How are you feeling today?": "I feel overwhelmed"
+                    "How well did you sleep?": "About 5 hours"
+      responses:
+        "200":
+          description: Analysis complete
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  analysis:
+                    type: object
+                    properties:
+                      mood:
+                        type: string
+                        enum: [great, good, okay, low, bad]
+                      stressLevel:
+                        type: integer
+                      insights:
+                        type: array
+                        items:
+                          type: string
+                      recommendations:
+                        type: array
+                        items:
+                          type: string
+
+  /mental-health/activity:
+    post:
+      summary: Log a game or activity completion
+      tags: [Mental Health]
+      security:
+        - BearerAuth: []
+      description: "Role: student only"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [type]
+              properties:
+                type:
+                  type: string
+                  enum: [game, activity]
+      responses:
+        "200":
+          description: Activity logged
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  gamesPlayed:
+                    type: integer
+                  activitiesCompleted:
+                    type: integer
+
+  /mental-health/report:
+    get:
+      summary: Get monthly mental health report
+      tags: [Mental Health]
+      security:
+        - BearerAuth: []
+      description: "Role: student only"
+      parameters:
+        - name: month
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 12
+        - name: year
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Monthly report
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  report:
+                    type: object
+
+  /mental-health/report/generate:
+    post:
+      summary: Generate AI-powered monthly mental health report
+      tags: [Mental Health]
+      security:
+        - BearerAuth: []
+      description: "Role: student only"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                month:
+                  type: integer
+                year:
+                  type: integer
+      responses:
+        "200":
+          description: Report generated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  report:
+                    type: object
