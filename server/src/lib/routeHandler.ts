@@ -28,12 +28,14 @@ export async function routesHandler(): Promise<Router> {
       for (const obj of routerObj.functions) {
         const fullPath = routerObj.path + (obj.props ?? "");
 
-        router[obj.method](
-          fullPath,
+        const middlewares = [
           authHandler(obj.authorization),
           rateLimiter.limit(obj.rateLimit, obj.keyType),
-          tryCatch(obj.handler)
-        );
+          ...(obj.middlewares ?? []),
+          tryCatch(obj.handler),
+        ];
+
+        router[obj.method](fullPath, ...middlewares);
       }
     }
 

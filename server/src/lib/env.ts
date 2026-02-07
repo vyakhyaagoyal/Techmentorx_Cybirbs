@@ -15,7 +15,7 @@ export const ENV = {
   PROD_URL:
     process.env.NODE_ENV === "production" ? requireEnv("PROD_URL") : undefined,
 
-  SUPABASE_URL: requireEnv("SUPABASE_URL"),
+  MONGODB_URI: requireEnv("MONGODB_URI"),
 
-  SUPABASE_SERVICE_KEY: requireEnv("SUPABASE_SERVICE_KEY"),
+  JWT_SECRET: requireEnv("JWT_SECRET"),
 };
