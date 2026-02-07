@@ -217,7 +217,7 @@ return (
                 <div>
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-sm font-medium text-gray-700">
-                      Your Engagement
+                      Student's Engagement
                     </span>
                     <span className="text-2xl font-bold text-gray-900">
                       {lecture.yourEngagement}%
@@ -308,7 +308,7 @@ return (
                     📊 Analysis
                   </h4>
                   <p className="text-sm text-yellow-800">
-                    Your engagement was below average during this lecture. The
+                    Student's engagement was below average during this lecture. The
                     topic has been added to your "To Study" list for review.
                     Consider using guided learning to strengthen your
                     understanding.
