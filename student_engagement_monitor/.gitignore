@@ -1,0 +1,72 @@
+# .gitignore for Student Engagement Monitor
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual Environment
+venv/
+ENV/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Data
+data/raw/
+data/processed/
+data/cache/
+
+# Models
+models/trained/*.json
+models/trained/*.pkl
+models/checkpoints/
+
+# Outputs
+outputs/reports/*.json
+outputs/reports/*.pdf
+outputs/logs/*.log
+
+# Temporary files
+*.tmp
+*.bak
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Kaggle
+.kaggle/
+
+# Large files
+*.avi
+*.mp4
+*.mov
+*.h5
+*.weights
+
+# Keep directory structure
+!.gitkeep

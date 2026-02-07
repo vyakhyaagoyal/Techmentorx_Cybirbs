@@ -1,0 +1,148 @@
+# Student Engagement Monitoring System - Configuration
+
+# Dataset Configuration
+dataset:
+  # Dataset paths
+  raw_path: "data/raw/DAiSEE/DataSet"
+  processed_path: "data/processed"
+  labels_path: "data/raw/DAiSEE/Labels"
+  train_split: "Train"
+  test_split: "Test"
+  validation_split: "Validation"
+
+# Video Processing
+video:
+  fps_extraction: 5  # Extract 5 frames per second from videos
+  frame_width: 640
+  frame_height: 480
+  skip_frames: 3  # Process every 3rd frame in real-time mode for performance
+
+# Feature Extraction
+features:
+  # Facial Expression Detection
+  facial:
+    enabled: true
+    use_mediapipe: true
+    num_landmarks: 468
+    detect_emotions: true
+    calculate_ear: true  # Eye Aspect Ratio for drowsiness
+    calculate_mar: true  # Mouth Aspect Ratio for yawning
+  
+  # Head Pose Estimation
+  head_pose:
+    enabled: true
+    engagement_yaw_threshold: 20  # degrees
+    engagement_pitch_threshold: 15  # degrees
+    track_movement_frequency: true
+  
+  # Hand Movement Detection
+  hand_movement:
+    enabled: true
+    detect_writing: true
+    detect_hand_raising: true
+    detect_fidgeting: true
+    movement_velocity_threshold: 0.5
+  
+  # Phone Usage Detection
+  phone_detection:
+    enabled: true
+    use_yolo: true
+    confidence_threshold: 0.5
+    model_path: "models/yolov8n.pt"
+
+# XGBoost Model Configuration
+model:
+  type: "xgboost"
+  objective: "multi:softmax"  # or "reg:squarederror" for regression
+  num_classes: 4  # Boredom, Engagement, Confusion, Frustration
+  max_depth: 8
+  learning_rate: 0.05
+  n_estimators: 300
+  subsample: 0.8
+  colsample_bytree: 0.8
+  tree_method: "gpu_hist"  # Use "hist" if no GPU
+  eval_metric: "mlogloss"
+  early_stopping_rounds: 20
+  save_path: "models/trained/engagement_classifier.json"
+
+# CCTV Processing
+cctv:
+  # Input Sources
+  input_mode: "file"  # Options: "file", "rtsp", "webcam"
+  rtsp_url: "rtsp://camera_ip:port/stream"
+  video_file_path: "data/sample_classroom.mp4"
+  webcam_index: 0
+  
+  # Processing Modes
+  processing_mode: "batch"  # Options: "realtime", "batch"
+  batch_size: 32
+  
+  # Student Detection & Tracking
+  person_detection:
+    enabled: true
+    model: "yolov8n.pt"
+    confidence_threshold: 0.6
+    max_students: 60  # Maximum students to track
+    tracking_algorithm: "deepsort"  # Options: "deepsort", "sort", "bytetrack"
+  
+  # Seat Mapping (for anonymous tracking)
+  seat_mapping:
+    enabled: true
+    grid_rows: 5
+    grid_cols: 10
+    auto_assign: true
+
+# Dashboard Configuration
+dashboard:
+  type: "streamlit"  # Options: "streamlit", "flask"
+  host: "localhost"
+  port: 8501
+  
+  # Features
+  features:
+    realtime_heatmap: true
+    individual_tracking: true
+    historical_analytics: true
+    alerts: true
+    reports: true
+  
+  # Alert Thresholds
+  alerts:
+    low_engagement_threshold: 0.3  # Alert if <30% engaged
+    high_confusion_threshold: 0.5  # Alert if >50% confused
+    notification_methods: ["dashboard", "email"]  # Options: "dashboard", "email", "sms"
+    email_recipients: []  # Add instructor emails
+
+# Privacy & Ethics
+privacy:
+  anonymize_faces: true
+  blur_intensity: 50  # 0-100, higher = more blur
+  store_raw_frames: false
+  data_retention_days: 30
+  enable_consent_tracking: true
+  no_facial_recognition: true
+  seat_based_tracking_only: true
+
+# Reporting
+reports:
+  auto_generate: true
+  format: "pdf"  # Options: "pdf", "html", "csv"
+  output_path: "outputs/reports"
+  include_visualizations: true
+  include_recommendations: true
+
+# Performance Optimization
+performance:
+  use_gpu: true
+  gpu_device: 0
+  num_workers: 4
+  batch_processing_threads: 2
+  enable_caching: true
+  cache_path: "data/cache"
+
+# Logging
+logging:
+  level: "INFO"  # Options: "DEBUG", "INFO", "WARNING", "ERROR"
+  log_file: "outputs/logs/system.log"
+  log_rotation: "daily"
+  max_log_size_mb: 100
